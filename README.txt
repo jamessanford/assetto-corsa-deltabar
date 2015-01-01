@@ -1,5 +1,5 @@
 
-DeltaBar v1.0 - iRacing-style delta bar with variable color
+DeltaBar v1.01 - iRacing-style delta bar with variable color
 
 Uses the sim_info.py module from Rombik
 
@@ -56,7 +56,7 @@ Usage:
 
 
 Download:
-https://github.com/jamessanford/assetto-corsa-deltabar/archive/deltabar_v100.zip
+https://github.com/jamessanford/assetto-corsa-deltabar/archive/deltabar_v101.zip
 
 Source browser:
 https://github.com/jamessanford/assetto-corsa-deltabar/
