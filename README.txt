@@ -56,7 +56,7 @@ Usage:
 
 
 Download:
-  deltabar_v1.0.zip
-Source browser:
-  https://github.com/jamessanford/assetto-corsa-deltabar/
+https://github.com/jamessanford/assetto-corsa-deltabar/archive/deltabar_v100.zip
 
+Source browser:
+https://github.com/jamessanford/assetto-corsa-deltabar/
