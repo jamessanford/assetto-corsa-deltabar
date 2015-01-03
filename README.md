@@ -26,9 +26,12 @@ The color of the bar is the fun bit: It shows if you are gaining or losing time.
 
  - It doesn't affect my frame rate on my relatively-low-end CPU, but let me know if something is not working right or it is causing slowdowns.
 
-##SCREENSHOT
+##SCREENSHOTS
 
 ![screenshot 1](https://i.imgur.com/eKzydcg.png)
+![screenshot 2](https://i.imgur.com/AoqH6lw.png)
+![screenshot 3](https://i.imgur.com/hqZ4rOL.png)
+![screenshot 4](https://i.imgur.com/JoQoiDu.png)
 
 ##INSTALLATION
 
