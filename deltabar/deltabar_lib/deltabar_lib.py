@@ -12,11 +12,11 @@ from deltabar_lib import lap_serialize
 # Yuck this looks nasty.  It used to be inline with the code and looked better.
 # TODO: move these over to the config file...
 APP_WIDTH = 800
-APP_HEIGHT = 85
+APP_HEIGHT = 75
 
 BAR_WIDTH_HALF = APP_WIDTH / 2
-BAR_HEIGHT = 50
-BAR_Y = 8
+BAR_HEIGHT = 32
+BAR_Y = 0
 BAR_SCALE = BAR_WIDTH_HALF / 2000.0  # scale 2000 milliseconds into the bar
 
 LABEL4_Y = BAR_Y + BAR_HEIGHT - 7
@@ -26,17 +26,22 @@ LABEL4_WIDTH_HALF = LABEL4_WIDTH / 2
 
 BANNER_FONT_SIZE = 22
 BANNER_TEXT_WIDTH = 200
+BANNER_Y = BAR_HEIGHT + 8
 
 
 FASTEST_LAP = 0
 FASTEST_SECTOR = 1
-SESSION_LAP = 2
-SESSION_SECTOR = 3
+FASTEST_OPTIMAL = 2
+SESSION_LAP = 3
+SESSION_SECTOR = 4
+SESSION_OPTIMAL = 5
 MODES = (
-  (FASTEST_LAP,    'vs best all-time lap'),
-  (FASTEST_SECTOR, 'vs best all-time sectors'),
-  (SESSION_LAP,    'vs best session lap'),
-  (SESSION_SECTOR, 'vs best session sectors'),
+  (FASTEST_LAP,    'vs all-time best lap'),
+  (FASTEST_SECTOR, 'vs all-time best sectors'),
+  (FASTEST_OPTIMAL, 'vs all-time optimal lap'),
+  (SESSION_LAP,    'vs session best lap'),
+  (SESSION_SECTOR, 'vs session best sectors'),
+  (SESSION_OPTIMAL, 'vs session optimal lap'),
 )
 
 
@@ -56,7 +61,7 @@ class Delta:
 
   def acMain(self, version):
     ac.setTitle(self.data.app_id, "")
-    ac.setBackgroundOpacity(self.data.app_id, 0.6)
+    ac.setBackgroundOpacity(self.data.app_id, 0.0)
     ac.drawBorder(self.data.app_id, 0)
     ac.setIconPosition(self.data.app_id, 0, -10000)
     ac.setSize(self.data.app_id, APP_WIDTH, APP_HEIGHT)
@@ -86,24 +91,31 @@ class Delta:
     ac.setPosition(self.data.clicklabel, 0, 0)
     ac.setSize(self.data.clicklabel, APP_WIDTH, APP_HEIGHT)
 
+    if not hasattr(self.data, 'bar_area'):
+      self.data.bar_area = ac.addLabel(self.data.app_id, "")
+    ac.setPosition(self.data.bar_area, 0, 0)
+    ac.setSize(self.data.bar_area, APP_WIDTH, BAR_HEIGHT)
+    ac.setBackgroundTexture(self.data.bar_area, 'apps/python/delta/txt1.png')
+
     if not hasattr(self.data, 'label4'):
       self.data.label4 = ac.addLabel(self.data.app_id, "")
     ac.setPosition(self.data.label4, BAR_WIDTH_HALF, LABEL4_Y)
-    ac.setSize(self.data.label4, LABEL4_WIDTH, LABEL4_FONT_SIZE)
+    ac.setSize(self.data.label4, LABEL4_WIDTH, LABEL4_FONT_SIZE + 4)
     ac.setFontAlignment(self.data.label4, 'center')
     ac.setFontSize(self.data.label4, LABEL4_FONT_SIZE)
+    ac.setBackgroundTexture(self.data.label4, 'apps/python/delta/txt1.png')
 
     if not hasattr(self.data, 'label7'):
       self.data.label7 = ac.addLabel(self.data.app_id, 'p7')
     ac.setPosition(self.data.label7,
-                   BAR_WIDTH_HALF - 100, LABEL4_Y + LABEL4_FONT_SIZE)
+                   BAR_WIDTH_HALF - 100, BANNER_Y)
     ac.setSize(self.data.label7, 200, BANNER_FONT_SIZE)
     ac.setFontAlignment(self.data.label7, 'center')
     ac.setFontSize(self.data.label7, BANNER_FONT_SIZE)
     ac.setText(self.data.label7, "")
 
     ac.setFontColor(self.data.label4, 0.0, 0.0, 0.0, 1.0)
-    ac.setFontColor(self.data.label7, 0.0, 0.0, 0.0, 1.0)
+    ac.setFontColor(self.data.label7, 1.0, 1.0, 1.0, 1.0)
 
     track = ac.getTrackConfiguration(0)
 
@@ -228,6 +240,31 @@ class Delta:
         fastest = self.data.fastest_splits[current_sector]
       elif self.bar_mode == SESSION_SECTOR:
         fastest = self.data.session_splits[current_sector]
+      elif self.bar_mode == FASTEST_OPTIMAL:
+        # TODO: Clean this up!  It is not pretty but it works.
+        fastest = self.data.fastest_splits[current_sector]
+        if fastest is None:
+          self.clear_screen_data()
+          return
+        min1 = 0
+        min2 = sum(fastest.splits[0:current_sector])
+        for _sector in range(current_sector):
+          min1 += self.data.fastest_splits[_sector].splits[_sector]
+        self.update_bar_data(fastest, current_sector, pos,
+                             elapsed_seconds, speed_ms, min1, min2)
+        return
+      elif self.bar_mode == SESSION_OPTIMAL:
+        fastest = self.data.session_splits[current_sector]
+        if fastest is None:
+          self.clear_screen_data()
+          return
+        min1 = 0
+        min2 = sum(fastest.splits[0:current_sector])
+        for _sector in range(current_sector):
+          min1 += self.data.session_splits[_sector].splits[_sector]
+        self.update_bar_data(fastest, current_sector, pos,
+                             elapsed_seconds, speed_ms, min1, min2)
+        return
       else:
         fastest = None
 
@@ -381,10 +418,10 @@ class Delta:
       time_delta = -2000
 
     # 800 width area, 400 is the middle, 400/2000 is 0.20
-    if time_delta >= 0:
+    if time_delta < 0:
       offset = BAR_WIDTH_HALF
     else:
-      offset = BAR_WIDTH_HALF + int(time_delta * BAR_SCALE)
+      offset = BAR_WIDTH_HALF - int(time_delta * BAR_SCALE)
     width = int((abs(time_delta) * BAR_SCALE))
     # TODO: consider only using hundredths to pick offset+width,
     # so that position changes only happen when the text changes as well
@@ -393,17 +430,17 @@ class Delta:
       ac.glColor4f(*colors)
       ac.glQuad(offset, BAR_Y, width, BAR_HEIGHT)  # starts at y=0, is 50 high
 
-    if time_delta >= 0:
+    if time_delta < 0:
       ac.setPosition(self.data.label4,
                      min(offset + width - LABEL4_WIDTH_HALF,
                          APP_WIDTH - LABEL4_WIDTH),
                      LABEL4_Y)
-      ac.setFontColor(self.data.label4, 1.0, 0.1, 0.1, 1.0)
+      ac.setFontColor(self.data.label4, 0.3, 1.0, 0.3, 1.0)
     else:
       ac.setPosition(self.data.label4,
                      max(0, offset - LABEL4_WIDTH_HALF),
                      LABEL4_Y)
-      ac.setFontColor(self.data.label4, 0.1, 1.0, 0.0, 1.0)
+      ac.setFontColor(self.data.label4, 0.85, 0.15, 0.15, 1.0)
 
     plus = '-' if original_time_delta < 0 else '+'
     star = '*' if self.data.star else ""
@@ -421,18 +458,26 @@ class Delta:
       self.clear_screen_data()
       return
 
+
     if hasattr(self.data, 't') and hasattr(self.data, 's'):
       self.draw_delta_bar(self.data.t, self.data.s)
     else:
       self.clear_screen_data()
 
+    if self.banner_time == 0:
+      ac.setBackgroundOpacity(self.data.app_id, 0.0)
+
     self.check_banner()
 
   def onClick(self):
+    if self.banner_time == 0:
+      self.show_banner(2.2, '{}\n(click again to toggle)'.format(MODES[self.bar_mode][1]))
+      return
+
     self.bar_mode += 1
     if self.bar_mode >= len(MODES):
       self.bar_mode = 0
-    self.show_banner(2.0, MODES[self.bar_mode][1])
+    self.show_banner(2.2, MODES[self.bar_mode][1])
 
 
 deltabar_app = Delta()
