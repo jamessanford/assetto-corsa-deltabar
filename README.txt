@@ -4,11 +4,13 @@ DeltaBar v1.01 - iRacing-style delta bar with variable color
 Uses the sim_info.py module from Rombik
 
 
-Supported modes, click on the plugin to toggle:
+Supported modes, click on the plugin repeatedly to toggle:
 - vs all-time best lap
 - vs all-time best sectors
+- vs all-time optimal lap
 - vs session best lap
 - vs session best sectors
+- vs session optimal lap
 
 Works in multiplayer and offline modes.
 
@@ -55,8 +57,18 @@ Usage:
    Click on the rectangle to toggle between display modes.
 
 
+CHANGELOG:
+   v1.10: January 3 2015
+          Improved visuals
+          Optimal lap support
+          Fixed left/right sides of bar to match plus/minus of iRacing.
+
+   v1.01: December 31 2014
+          Initial release
+
+
 Download:
-https://github.com/jamessanford/assetto-corsa-deltabar/archive/deltabar_v101.zip
+https://github.com/jamessanford/assetto-corsa-deltabar/archive/deltabar_v110.zip
 
 Source browser:
 https://github.com/jamessanford/assetto-corsa-deltabar/

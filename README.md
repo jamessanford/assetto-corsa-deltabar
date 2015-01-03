@@ -4,18 +4,20 @@
 ####Uses the sim_info.py module from Rombik
 
 
-> Supported modes, click on the plugin to toggle:
-> 
+> Supported modes, click on the plugin repeatedly to toggle:
+>
 > - vs all-time best lap
 > - vs all-time best sectors
+> - vs all-time optimal lap
 > - vs session best lap
 > - vs session best sectors
+> - vs session optimal lap
 
 Works in multiplayer and offline modes.
 
 The number itself is the improvement/loss for the current lap(or sector), the bar length is a visual representation of that number.
 
-The color of the bar is the fun bit: It shows if you are gaining or losing time. 
+The color of the bar is the fun bit: It shows if you are gaining or losing time.
 (exit a corner slightly better and it will glow green, even if the delta itself is still in the red; exit a corner significantly faster and it will be bright green)
 
  - Best lap telemetry is stored locally in a JSON format.
@@ -26,7 +28,7 @@ The color of the bar is the fun bit: It shows if you are gaining or losing time.
 
 ##SCREENSHOT
 
-![screenshot 1](https://i.imgur.com/UtZBIqul.jpg)
+![screenshot 1](https://i.imgur.com/eKzydcg.png)
 
 ##INSTALLATION
 
@@ -46,15 +48,28 @@ C:\Program Files (x86)\Steam\steamapps\common\assettocorsa\apps\python
 
 Usage:
 >   You should see a large rectangle appear.
->   
+>
 >   Drive a lap and then it will show data.
 >
 >   Click on the rectangle to toggle between display modes.
 
 
+##CHANGELOG:
+
+v1.10: January 3 2015
+
+ - Improved visuals
+ - Optimal lap support
+ - Fixed left/right sides of bar to match plus/minus of iRacing.
+
+v1.01: December 31 2014
+
+ - Initial release
+
+
 Download:
 
- - https://github.com/jamessanford/assetto-corsa-deltabar/archive/deltabar_v101.zip
+ - https://github.com/jamessanford/assetto-corsa-deltabar/archive/deltabar_v110.zip
 
 Source browser:
 
