@@ -392,7 +392,8 @@ class Delta:
       session[sector_number] = self.lap
 
   def clear_screen_data(self):
-    ac.setText(self.data.label4, "") # delta text
+    ac.setVisible(self.data.label4, 0) # delta text
+    ac.setText(self.data.label4, "")
     if hasattr(self.data, 't'):
       del self.data.t
     if hasattr(self.data, 's'):
@@ -456,12 +457,20 @@ class Delta:
                '{}{}{}.{}'.format(plus, star, ms[0:-3], ms[-3:-1]))
 
   def onRender(self, delta_t):
+    if self.first_update:
+      return # bail out, nothing is ready
+
     if (sim_info.info.graphics.status not in (sim_info.AC_LIVE,
                                               sim_info.AC_PAUSE)):
+      ac.setVisible(self.data.bar_area, 0)
+      ac.setVisible(self.data.label4, 0)
       self.clear_screen_data()
     elif hasattr(self.data, 't') and hasattr(self.data, 's'):
+      ac.setVisible(self.data.bar_area, 1)
+      ac.setVisible(self.data.label4, 1)
       self.draw_delta_bar(self.data.t, self.data.s)
     else:
+      ac.setVisible(self.data.bar_area, 1)
       self.clear_screen_data()
 
     if self.banner_time == 0:
