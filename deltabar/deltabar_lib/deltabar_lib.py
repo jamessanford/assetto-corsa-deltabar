@@ -95,15 +95,20 @@ class Delta:
       self.data.bar_area = ac.addLabel(self.data.app_id, "")
     ac.setPosition(self.data.bar_area, 0, 0)
     ac.setSize(self.data.bar_area, APP_WIDTH, BAR_HEIGHT)
-    ac.setBackgroundTexture(self.data.bar_area, 'apps/python/delta/txt1.png')
+    # Fill 100% #999999, Fill color erase 5.7 four times
+    ac.setBackgroundTexture(self.data.bar_area,
+                            'apps/python/deltabar/background.png')
 
     if not hasattr(self.data, 'label4'):
       self.data.label4 = ac.addLabel(self.data.app_id, "")
-    ac.setPosition(self.data.label4, BAR_WIDTH_HALF, LABEL4_Y)
+    ac.setPosition(self.data.label4,
+                   BAR_WIDTH_HALF - LABEL4_WIDTH_HALF, LABEL4_Y)
     ac.setSize(self.data.label4, LABEL4_WIDTH, LABEL4_FONT_SIZE + 4)
     ac.setFontAlignment(self.data.label4, 'center')
     ac.setFontSize(self.data.label4, LABEL4_FONT_SIZE)
-    ac.setBackgroundTexture(self.data.label4, 'apps/python/delta/txt1.png')
+    # Fill 100% #999999, Fill color erase 5.7 four times
+    ac.setBackgroundTexture(self.data.label4,
+                            'apps/python/deltabar/textbox.png')
 
     if not hasattr(self.data, 'label7'):
       self.data.label7 = ac.addLabel(self.data.app_id, 'p7')
@@ -451,15 +456,10 @@ class Delta:
                '{}{}{}.{}'.format(plus, star, ms[0:-3], ms[-3:-1]))
 
   def onRender(self, delta_t):
-    if (self.lap is None or
-        sim_info.info.graphics.status not in (sim_info.AC_LIVE,
+    if (sim_info.info.graphics.status not in (sim_info.AC_LIVE,
                                               sim_info.AC_PAUSE)):
-      # Clear out all visible text and bail out.
       self.clear_screen_data()
-      return
-
-
-    if hasattr(self.data, 't') and hasattr(self.data, 's'):
+    elif hasattr(self.data, 't') and hasattr(self.data, 's'):
       self.draw_delta_bar(self.data.t, self.data.s)
     else:
       self.clear_screen_data()
@@ -471,7 +471,8 @@ class Delta:
 
   def onClick(self):
     if self.banner_time == 0:
-      self.show_banner(2.2, '{}\n(click again to toggle)'.format(MODES[self.bar_mode][1]))
+      current_mode = MODES[self.bar_mode][1]
+      self.show_banner(2.2, '{}\n(click again to toggle)'.format(current_mode))
       return
 
     self.bar_mode += 1
