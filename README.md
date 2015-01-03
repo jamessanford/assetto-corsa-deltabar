@@ -1,5 +1,5 @@
 
-## DeltaBar v1.01
+## DeltaBar v1.10
 ####iRacing-style delta bar with variable color
 ####Uses the sim_info.py module from Rombik
 
