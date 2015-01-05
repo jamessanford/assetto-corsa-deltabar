@@ -72,6 +72,8 @@ def load(track, car, lap_type):
   try:
     with zipfile.ZipFile('{}.zip'.format(fullpath), mode='r') as zip:
       lap = decode((zip.read('{}.{}'.format(filename, ext))).decode('utf-8'))
+      if lap.get_index() < 100:
+        raise ValueError('Not enough data to be a correctly saved lap.')
       lap.fromfile = True
       return lap
   except:
