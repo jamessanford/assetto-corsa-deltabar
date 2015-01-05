@@ -202,7 +202,15 @@ class Delta:
         # However, beware of the car jumping position (vallelunga).
         current_sector = self.get_sector(current_lap, pos)
 
-    if self.lap.lap_number != current_lap and pos > 0.9:
+    # Exceptional cases that we need to handle first.
+    if current_lap < self.lap.lap_number:
+      # Lap number decreased?
+      # Session was reset or changed between practice/qualifying/race.
+      # Abandon the lap and start over.
+      self.clear_screen_data()
+      self.lap = None
+      return
+    elif self.lap.lap_number != current_lap and pos > 0.9:
       # If we are supposedly on a new lap, but we have not crossed the
       # start line yet, do not update sectors or finalize the lap.
       return
