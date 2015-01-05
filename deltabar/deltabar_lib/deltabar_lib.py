@@ -202,6 +202,11 @@ class Delta:
         # However, beware of the car jumping position (vallelunga).
         current_sector = self.get_sector(current_lap, pos)
 
+    if self.lap.lap_number != current_lap and pos > 0.9:
+      # If we are supposedly on a new lap, but we have not crossed the
+      # start line yet, do not update sectors or finalize the lap.
+      return
+
     use_sector = self.check_sector(current_lap, current_sector, pos)
 
     if self.lap.lap_number != current_lap:
