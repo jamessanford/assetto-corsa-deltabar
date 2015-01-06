@@ -224,14 +224,12 @@ class Delta:
 
     elapsed_seconds = ac.getCarState(0, acsys.CS.LapTime)
     speed_ms = ac.getCarState(0, acsys.CS.SpeedMS)
-    throttle_pct = ac.getCarState(0, acsys.CS.Gas)
-    brake_pct = ac.getCarState(0, acsys.CS.Brake)
-    steering_angle = sim_info.info.physics.steerAngle
-    gear = ac.getCarState(0, acsys.CS.Gear)
-    distance = sim_info.info.graphics.distanceTraveled
     self.lap.add(pos, elapsed_seconds, speed_ms,
-                 throttle_pct, brake_pct, steering_angle,
-                 gear, distance)
+                 ac.getCarState(0, acsys.CS.Gas),
+                 ac.getCarState(0, acsys.CS.Brake),
+                 sim_info.info.physics.steerAngle,
+                 ac.getCarState(0, acsys.CS.Gear),
+                 sim_info.info.graphics.distanceTraveled)
 
     if (ac.getCarState(0, acsys.CS.LapInvalidated) or
         sim_info.info.physics.numberOfTyresOut > 2):
