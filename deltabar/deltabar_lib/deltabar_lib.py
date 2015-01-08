@@ -469,7 +469,7 @@ class Delta:
     star = '*' if self.data.star else ""
     # NOTE: The below .format()s are too much magic.
     #       We want 234 to be '0.23' and 12345 to be '12.34'
-    ms = '{:04d}'.format(abs(time_delta))
+    ms = '{:04d}'.format(abs(int(time_delta)))
     label_text = '{}{}{}.{}'.format(plus, star, ms[0:-3], ms[-3:-1])
     label_changed = self.label.update(label_text)
 
