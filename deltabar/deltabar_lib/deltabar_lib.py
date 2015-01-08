@@ -21,7 +21,7 @@ BAR_SCALE = BAR_WIDTH_HALF / 2000.0  # scale 2000 milliseconds into the bar
 
 LABEL4_Y = BAR_Y + BAR_HEIGHT - 7
 LABEL4_FONT_SIZE = 28
-LABEL4_WIDTH = 100
+LABEL4_WIDTH = int(3.58 * LABEL4_FONT_SIZE)
 LABEL4_WIDTH_HALF = LABEL4_WIDTH / 2
 
 BANNER_FONT_SIZE = 22
@@ -48,6 +48,32 @@ MODES = (
 __author__ = 'James Sanford (jsanfordgit@froop.com)'
 
 
+class LabelTracker:
+  """Simple 'smoothing' for delta text changes.
+
+  Avoid switching rapidly between two values like '-0.01' and '-0.02',
+  just pick one and stick to it.
+  """
+
+  def __init__(self):
+    self.bar_smooth = True
+    self.old = ""
+    self.last = ""
+
+  def update(self, text):
+    """Returns True if you should update the label with the new text."""
+    if not self.bar_smooth:
+      return True
+
+    # We used to have a time expiration here, but it was unnecessary.
+    if text == self.last or text == self.old:
+      return False
+
+    self.old = self.last
+    self.last = text
+    return True
+
+
 class Delta:
   def __init__(self):
     self.data = sys.modules['deltabar'].deltabar_data
@@ -56,8 +82,10 @@ class Delta:
     self.sector_wait = None
     self.sectors_available = False  # auto-set to True when available
     self.bar_mode = FASTEST_LAP
+    self.bar_moves = True
     self.banner_time = 0
     self.first_update = True
+    self.label = LabelTracker()
 
   def acMain(self, version):
     ac.setTitle(self.data.app_id, "")
@@ -69,6 +97,8 @@ class Delta:
 
   def acShutdown(self):
     self.data.config['bar_mode'] = self.bar_mode
+    self.data.config['bar_moves'] = self.bar_moves
+    self.data.config['bar_smooth'] = self.label.bar_smooth
     if hasattr(self, 'sector_lookup'):
       lookup = self.data.config.setdefault('sectors', {})
       lookup[ac.getTrackConfiguration(0)] = self.sector_lookup
@@ -120,7 +150,7 @@ class Delta:
     ac.setText(self.data.label7, "")
 
     ac.setFontColor(self.data.label4, 0.0, 0.0, 0.0, 1.0)
-    ac.setFontColor(self.data.label7, 1.0, 1.0, 1.0, 1.0)
+    ac.setFontColor(self.data.label7, 0.945, 0.933, 0.102, 1.0) # yellow
 
     track = ac.getTrackConfiguration(0)
 
@@ -128,6 +158,10 @@ class Delta:
       self.data.config = config.load()
       if 'bar_mode' in self.data.config:
         self.bar_mode = self.data.config['bar_mode']
+      if 'bar_moves' in self.data.config:
+        self.bar_moves = self.data.config['bar_moves']
+      if 'bar_smooth' in self.data.config:
+        self.label.bar_smooth = self.data.config['bar_smooth']
       if ('sectors' in self.data.config and
           track in self.data.config['sectors']):
         self.sector_lookup = self.data.config['sectors'][track]
@@ -422,13 +456,21 @@ class Delta:
   def draw_delta_bar(self, time_delta, speed_delta):
     # NOTE: Scale from 0.0 meters/sec = 1.0  to  5.0 meters/sec = 0.0
     #       If you change 5.0, change 0.2 to 1/new_value
+
+    plus = '-' if time_delta < 0 else '+'
+    star = '*' if self.data.star else ""
+    # NOTE: The below .format()s are too much magic.
+    #       We want 234 to be '0.23' and 12345 to be '12.34'
+    ms = '{:04d}'.format(abs(time_delta))
+    label_text = '{}{}{}.{}'.format(plus, star, ms[0:-3], ms[-3:-1])
+    label_changed = self.label.update(label_text)
+
     x = 1.0 - (min(abs(speed_delta), 5.0) * 0.2)
     if speed_delta >= 0.0:
       colors = (x, 1.0, x, 1.0)
     else:
       colors = (1.0, x, x, 1.0)
 
-    original_time_delta = time_delta
     if time_delta > 2000:
       time_delta = 2000
     elif time_delta < -2000:
@@ -447,25 +489,25 @@ class Delta:
       ac.glColor4f(*colors)
       ac.glQuad(offset, BAR_Y, width, BAR_HEIGHT)  # starts at y=0, is 50 high
 
-    if time_delta < 0:
-      ac.setPosition(self.data.label4,
-                     min(offset + width - LABEL4_WIDTH_HALF,
-                         APP_WIDTH - LABEL4_WIDTH),
-                     LABEL4_Y)
-      ac.setFontColor(self.data.label4, 0.3, 1.0, 0.3, 1.0)
-    else:
-      ac.setPosition(self.data.label4,
-                     max(0, offset - LABEL4_WIDTH_HALF),
-                     LABEL4_Y)
-      ac.setFontColor(self.data.label4, 0.85, 0.15, 0.15, 1.0)
+    if not label_changed:
+      # bail out, do not change the actual label
+      return
 
-    plus = '-' if original_time_delta < 0 else '+'
-    star = '*' if self.data.star else ""
-    # NOTE: The below .format()s are too much magic.
-    #       We want 234 to be '0.23' and 12345 to be '12.34'
-    ms = '{:04d}'.format(abs(original_time_delta))
-    ac.setText(self.data.label4,
-               '{}{}{}.{}'.format(plus, star, ms[0:-3], ms[-3:-1]))
+    if time_delta < 0:
+      ac.setFontColor(self.data.label4, 0.3, 1.0, 0.3, 1.0)
+      if self.bar_moves:
+        ac.setPosition(self.data.label4,
+                       min(offset + width - LABEL4_WIDTH_HALF,
+                           APP_WIDTH - LABEL4_WIDTH),
+                       LABEL4_Y)
+    else:
+      ac.setFontColor(self.data.label4, 0.85, 0.15, 0.15, 1.0)
+      if self.bar_moves:
+        ac.setPosition(self.data.label4,
+                       max(0, offset - LABEL4_WIDTH_HALF),
+                       LABEL4_Y)
+
+    ac.setText(self.data.label4, label_text)
 
   def onRender(self, delta_t):
     if self.first_update:
