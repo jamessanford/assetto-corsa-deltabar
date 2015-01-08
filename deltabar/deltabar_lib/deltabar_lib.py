@@ -299,7 +299,11 @@ class Delta:
         min1 = 0
         min2 = sum(fastest.splits[0:current_sector])
         for _sector in range(current_sector):
-          min1 += self.data.fastest_splits[_sector].splits[_sector]
+          _sector_lap = self.data.fastest_splits[_sector]
+          if _sector_lap is None:
+            self.clear_screen_data()
+            return
+          min1 += _sector_lap.splits[_sector]
         self.update_bar_data(fastest, current_sector, pos,
                              elapsed_seconds, speed_ms, min1, min2)
         return
@@ -311,7 +315,11 @@ class Delta:
         min1 = 0
         min2 = sum(fastest.splits[0:current_sector])
         for _sector in range(current_sector):
-          min1 += self.data.session_splits[_sector].splits[_sector]
+          _sector_lap = self.data.session_splits[_sector]
+          if _sector_lap is None:
+            self.clear_screen_data()
+            return
+          min1 += _sector_lap.splits[_sector]
         self.update_bar_data(fastest, current_sector, pos,
                              elapsed_seconds, speed_ms, min1, min2)
         return
