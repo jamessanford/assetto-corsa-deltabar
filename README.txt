@@ -1,5 +1,5 @@
 
-DeltaBar v1.10 - iRacing-style delta bar with variable color
+DeltaBar v1.20 - iRacing-style delta bar with variable color
 
 Uses the sim_info.py module from Rombik
 
@@ -58,6 +58,19 @@ Usage:
 
 
 CHANGELOG:
+    v1.20: January 7 2015
+           Fix for many addon tracks, end-of-lap detection was not working.
+           Fix for session resets and transitions between practice/quali/race.
+           Fix for optimal lap mode when your early sectors were off track.
+           Click to change modes uses more visible yellow color.
+           Lightly smooth reported delta so it doesn't constantly flip
+           between two values.
+             You can disable this with "bar_smooth": false in
+             Documents/Assetto Corsa/plugins/deltabar/config.txt
+           Option to keep delta text in the center of the bar.
+             You can set "bar_moves": false in
+             Documents/Assetto Corsa/plugins/deltabar/config.txt
+
    v1.10: January 3 2015
           Improved visuals
           Optimal lap support
@@ -68,7 +81,7 @@ CHANGELOG:
 
 
 Download:
-https://github.com/jamessanford/assetto-corsa-deltabar/archive/deltabar_v110.zip
+https://github.com/jamessanford/assetto-corsa-deltabar/archive/deltabar_v120.zip
 
 Source browser:
 https://github.com/jamessanford/assetto-corsa-deltabar/
