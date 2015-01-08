@@ -12,6 +12,8 @@ CONFIG_FILENAME = 'config.txt'
 # Having defaults just helps if you immediately use multiplayer mode.
 CONFIG_DEFAULTS = {
   'bar_mode': 0,
+  'bar_moves': True,
+  'bar_smooth': True,
   'sectors': {
     'brands-hatch': [ 0.35944467782974243, 0.7798787355422974, 0 ],
     'imola': [ 0.3146900534629822, 0.6765202879905701, 0 ],
@@ -57,6 +59,13 @@ def load():
   filename = os.path.join(path, CONFIG_FILENAME)
   try:
     with open(filename, 'r') as f:
-      return json.loads(f.read())
+      config_dict = json.loads(f.read())
   except:
     return CONFIG_DEFAULTS # NOTE: Silently ignore all errors.
+
+  # Merge any newly available track sector information.
+  for track in CONFIG_DEFAULTS['sectors']:
+    if track not in config_dict['sectors']:
+      config_dict['sectors'][track] = CONFIG_DEFAULTS['sectors'][track]
+
+  return config_dict
