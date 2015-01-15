@@ -463,11 +463,10 @@ class Delta:
 
   def draw_delta_bar(self, time_delta, speed_delta):
     plus = '-' if time_delta < 0 else '+'
-    star = '*' if self.data.star else ""
     # NOTE: The below .format()s are too much magic.
     #       We want 234 to be '0.23' and 12345 to be '12.34'
     ms = '{:04d}'.format(abs(int(time_delta)))
-    label_text = '{}{}{}.{}'.format(plus, star, ms[0:-3], ms[-3:-1])
+    label_text = '{}{}{}.{}'.format(plus, self.data.star, ms[0:-3], ms[-3:-1])
     label_changed = self.label.update(label_text)
 
     # NOTE: Scale from 0.0 meters/sec = 1.0  to  5.0 meters/sec = 0.0
