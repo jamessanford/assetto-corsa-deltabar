@@ -1,7 +1,8 @@
 
 DeltaBar v1.20 - iRacing-style delta bar with variable color
 
-Uses the sim_info.py module from Rombik
+  Plugin for Assetto Corsa racing simulator.
+  Uses the sim_info.py module from Rombik.
 
 
 Supported modes, click on the plugin repeatedly to toggle:

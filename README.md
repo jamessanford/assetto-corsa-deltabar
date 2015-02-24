@@ -1,5 +1,6 @@
 
 ## DeltaBar v1.20
+## Plugin for Assetto Corsa racing simulator
 ####iRacing-style delta bar with variable color
 ####Uses the sim_info.py module from Rombik
 
