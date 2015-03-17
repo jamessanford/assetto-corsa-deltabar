@@ -208,8 +208,12 @@ class Delta:
     pos = ac.getCarState(0, acsys.CS.NormalizedSplinePosition)
 
     if self.lap is None:
-      if pos > 0.5:
-        # We are coming up on the start line, wait until we cross it.
+      if ac.getCarState(0, acsys.CS.LapTime) == 0:
+        # Only record once the clock is ticking.
+        return
+      elif pos > 0.5:
+        # It appears we have not reached the start line yet.
+        # Or at least, not that we know about.
         return
       else:
         self.lap = lap.Lap()
@@ -218,15 +222,7 @@ class Delta:
     current_lap = ac.getCarState(0, acsys.CS.LapCount)
     current_sector = sim_info.info.graphics.currentSectorIndex
 
-    if not self.data.sectors_available:
-      # See if they have become available now.
-      if current_sector > 0:
-        self.data.sectors_available = True
-      else:
-        # Use lookup table.
-        # However, beware of the car jumping position (vallelunga).
-        current_sector = self.get_sector(current_lap, pos)
-
+    # NOTE: When acsys.CS.LapInvalidated works, add here or at numberOfTyresOut.
     # Exceptional cases that we need to handle first.
     if (current_lap < self.lap.lap_number
         or sim_info.info.graphics.session != self.last_session):
@@ -238,17 +234,23 @@ class Delta:
       self.clear_screen_data()
       self.lap = None
       return
-    elif self.lap.lap_number != current_lap and pos > 0.9:
-      # If we are supposedly on a new lap, but we have not crossed the
-      # start line yet, do not update sectors or finalize the lap.
-      return
+
+    if not self.data.sectors_available:
+      # See if they have become available now.
+      if current_sector > 0:
+        self.data.sectors_available = True
+      else:
+        # Use lookup table.
+        # However, beware of the car jumping position (vallelunga).
+        current_sector = self.get_sector(current_lap, pos)
 
     use_sector = self.check_sector(current_lap, current_sector, pos)
 
     if self.lap.lap_number != current_lap:
       self.finalize_lap()
-      self.lap = lap.Lap()
-      self.init_lap()
+      self.lap = None
+      self.clear_screen_data()
+      return
 
     elapsed_seconds = ac.getCarState(0, acsys.CS.LapTime)
     speed_ms = ac.getCarState(0, acsys.CS.SpeedMS)
@@ -259,8 +261,7 @@ class Delta:
                  ac.getCarState(0, acsys.CS.Gear),
                  sim_info.info.graphics.distanceTraveled)
 
-    if (ac.getCarState(0, acsys.CS.LapInvalidated) or
-        sim_info.info.physics.numberOfTyresOut > 2):
+    if sim_info.info.physics.numberOfTyresOut > 2:
       self.lap.invalid = True
       if use_sector:
         self.lap.invalid_sectors[current_sector] = True
@@ -490,7 +491,7 @@ class Delta:
       ac.glQuad(offset, config.BAR_Y, width, config.BAR_HEIGHT)  # starts at y=0, is 50 high
 
     if not label_changed:
-      # bail out, do not change the actual label
+      # bail out, do not change the actual label (and do not move it)
       return
 
     if time_delta < 0:
