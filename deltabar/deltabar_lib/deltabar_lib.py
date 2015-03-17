@@ -9,43 +9,21 @@ from deltabar_lib import config
 from deltabar_lib import lap
 from deltabar_lib import lap_serialize
 
-# Yuck this looks nasty.  It used to be inline with the code and looked better.
-# TODO: move these over to the config file...
-APP_WIDTH = 800
-APP_HEIGHT = 75
-
-BAR_WIDTH_HALF = APP_WIDTH / 2
-BAR_HEIGHT = 32
-BAR_Y = 0
-BAR_SCALE = BAR_WIDTH_HALF / 2000.0  # scale 2000 milliseconds into the bar
-
-LABEL4_Y = BAR_Y + BAR_HEIGHT - 7
-LABEL4_FONT_SIZE = 28
-LABEL4_WIDTH = int(3.58 * LABEL4_FONT_SIZE)
-LABEL4_WIDTH_HALF = LABEL4_WIDTH / 2
-
-BANNER_FONT_SIZE = 22
-BANNER_TEXT_WIDTH = 200
-BANNER_Y = BAR_HEIGHT + 8
-
-
-FASTEST_LAP = 0
-FASTEST_SECTOR = 1
-FASTEST_OPTIMAL = 2
-SESSION_LAP = 3
-SESSION_SECTOR = 4
-SESSION_OPTIMAL = 5
-MODES = (
-  (FASTEST_LAP,    'vs all-time best lap'),
-  (FASTEST_SECTOR, 'vs all-time best sectors'),
-  (FASTEST_OPTIMAL, 'vs all-time optimal lap'),
-  (SESSION_LAP,    'vs session best lap'),
-  (SESSION_SECTOR, 'vs session best sectors'),
-  (SESSION_OPTIMAL, 'vs session optimal lap'),
-)
-
 
 __author__ = 'James Sanford (jsanfordgit@froop.com)'
+
+
+def getSectorCount():
+  return max(1, sim_info.info.static.sectorCount)
+
+
+def getTrack():
+  track = ac.getTrackName(0)
+  track_config = ac.getTrackConfiguration(0)
+  if track_config:
+    track = '{}-{}'.format(track, track_config)
+
+  return track
 
 
 class LabelTracker:
@@ -101,7 +79,7 @@ class Delta:
     self.data.config['bar_smooth'] = self.label.bar_smooth
     if hasattr(self, 'sector_lookup'):
       lookup = self.data.config.setdefault('sectors', {})
-      lookup[ac.getTrackConfiguration(0)] = self.sector_lookup
+      lookup[getTrack()] = self.sector_lookup
     config.save(self.data.config)
 
     if hasattr(self.data, 'fastest_lap') and not self.data.fastest_lap.fromfile:
@@ -152,7 +130,7 @@ class Delta:
     ac.setFontColor(self.data.label4, 0.0, 0.0, 0.0, 1.0)
     ac.setFontColor(self.data.label7, 0.945, 0.933, 0.102, 1.0) # yellow
 
-    track = ac.getTrackConfiguration(0)
+    track = getTrack()
 
     if not hasattr(self.data, 'config'):
       self.data.config = config.load()
@@ -174,7 +152,7 @@ class Delta:
 
     if not hasattr(self.data, 'fastest_splits'):
       self.data.fastest_splits = []
-      for sector_number in range(sim_info.info.static.sectorCount):
+      for sector_number in range(getSectorCount()):
         rlap = lap_serialize.load(track,
                                   ac.getCarName(0),
                                   'q{}'.format(sector_number + 1),
@@ -182,14 +160,14 @@ class Delta:
         self.data.fastest_splits.append(rlap)  # May be None
 
     if not hasattr(self.data, 'session_splits'):
-      self.data.session_splits = [None] * sim_info.info.static.sectorCount
+      self.data.session_splits = [None] * getSectorCount()
 
   def init_lap(self):
-    self.lap.track = ac.getTrackConfiguration(0)
+    self.lap.track = getTrack()
     self.lap.car = ac.getCarName(0)
     self.lap.lap_number = ac.getCarState(0, acsys.CS.LapCount)
-    self.lap.splits = [0] * sim_info.info.static.sectorCount
-    self.lap.invalid_sectors = [False] * sim_info.info.static.sectorCount
+    self.lap.splits = [0] * getSectorCount()
+    self.lap.invalid_sectors = [False] * getSectorCount()
 
   def finalize_lap(self):
     if sim_info.info.graphics.iLastTime:
@@ -360,7 +338,7 @@ class Delta:
         # sectors not available
         return -1
       elif pos >= self.sector_lookup[self.last_sector]:
-        if self.last_sector < sim_info.info.static.sectorCount - 1:
+        if self.last_sector < getSectorCount() - 1:
           return self.last_sector + 1
     return self.last_sector
 
@@ -420,7 +398,7 @@ class Delta:
 
     sector_number = new_sector - 1  # 'last'
     if sector_number == -1:
-      sector_number = sim_info.info.static.sectorCount - 1
+      sector_number = getSectorCount() - 1
 
     # Always record the time, even if the lap is invalid.
     self.lap.splits[sector_number] = sector_time
