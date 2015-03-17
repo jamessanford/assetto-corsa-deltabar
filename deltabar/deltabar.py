@@ -3,6 +3,16 @@ import sys
 import time
 import traceback
 
+# Nothing interesting here.  See deltabar_lib/deltabar_lib.py
+#
+# This is the entry point for the Assetto Corsa API,
+# we wrap the API calls with some error checking and farm it
+# out to our actual implementation.
+#
+# This wrapper allows us to replace the deltabar_lib module
+# with a new version while AC is running; AC will still call
+# the endpoints here but we can switch over to the new module version.
+
 has_error = False
 logged_errors = []
 
@@ -34,6 +44,8 @@ def acMain(ac_version):
   try:
     deltabar_data.app_id = ac.newApp('deltabar')
     ac.addRenderCallback(deltabar_data.app_id, onRender)
+
+    deltabar_data.app_id2 = ac.newApp('deltabar timer')
 
     return deltabar_app.acMain(ac_version)
   except:

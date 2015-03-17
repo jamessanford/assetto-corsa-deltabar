@@ -71,6 +71,14 @@ class Delta:
     ac.drawBorder(self.data.app_id, 0)
     ac.setIconPosition(self.data.app_id, 0, -10000)
     ac.setSize(self.data.app_id, config.APP_WIDTH, config.APP_HEIGHT)
+
+    # statusbox window
+    ac.setTitle(self.data.app_id2, "")
+    ac.setBackgroundOpacity(self.data.app_id2, 0.5)
+    ac.drawBorder(self.data.app_id2, 0)
+    ac.setIconPosition(self.data.app_id2, 0, -10000)
+    ac.setSize(self.data.app_id2, 300, 200)
+
     return 'deltabar'
 
   def acShutdown(self):
