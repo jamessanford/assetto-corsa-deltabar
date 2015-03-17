@@ -345,7 +345,7 @@ class Delta:
             self.clear_screen_data()
             return
           min1 += _sector_lap.splits[_sector]
-        self.update_bar_data(fastest, current_sector, pos,
+        self.update_bar_data(fastest, -1, pos,  # -1 means use lap.invalid.
                              elapsed_seconds, speed_ms, min1, min2)
         return
       elif self.bar_mode == config.SESSION_OPTIMAL:
@@ -361,7 +361,7 @@ class Delta:
             self.clear_screen_data()
             return
           min1 += _sector_lap.splits[_sector]
-        self.update_bar_data(fastest, current_sector, pos,
+        self.update_bar_data(fastest, -1, pos,  # -1 means use lap.invalid.
                              elapsed_seconds, speed_ms, min1, min2)
         return
       else:
