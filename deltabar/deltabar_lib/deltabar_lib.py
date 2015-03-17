@@ -167,7 +167,8 @@ class Delta:
         self.sector_lookup = self.data.config['sectors'][track]
 
     if not hasattr(self.data, 'fastest_lap'):
-      rlap = lap_serialize.load(track, ac.getCarName(0), 'best')
+      rlap = lap_serialize.load(track, ac.getCarName(0), 'best',
+                                sector_count=getSectorCount())
       if rlap is not None:
         self.data.fastest_lap = rlap
 
@@ -176,7 +177,8 @@ class Delta:
       for sector_number in range(sim_info.info.static.sectorCount):
         rlap = lap_serialize.load(track,
                                   ac.getCarName(0),
-                                  'q{}'.format(sector_number + 1))
+                                  'q{}'.format(sector_number + 1),
+                                  sector_count=getSectorCount())
         self.data.fastest_splits.append(rlap)  # May be None
 
     if not hasattr(self.data, 'session_splits'):
