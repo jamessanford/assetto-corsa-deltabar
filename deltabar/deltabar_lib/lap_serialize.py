@@ -64,7 +64,7 @@ def save(lap_obj, lap_type):
   #       It is no fun when your fast laps are not saved.
 
 
-def load(track, car, lap_type):
+def load(track, car, lap_type, sector_count=None):
   # lap_type == 'best', 'p1', 'p2', ...
 
   path, filename, ext = get_path(track, car, lap_type)
@@ -72,8 +72,14 @@ def load(track, car, lap_type):
   try:
     with zipfile.ZipFile('{}.zip'.format(fullpath), mode='r') as zip:
       lap = decode((zip.read('{}.{}'.format(filename, ext))).decode('utf-8'))
+
       if lap.get_index() < 100:
         raise ValueError('Not enough data to be a correctly saved lap.')
+
+      if sector_count is not None and len(lap.splits) != sector_count:
+        # NOTE: Ignore incorrect laps saved with AC 1.1 or AC 1.1.1.
+        raise ValueError('Ignoring lap data with wrong sector count.')
+
       lap.fromfile = True
       return lap
   except:
