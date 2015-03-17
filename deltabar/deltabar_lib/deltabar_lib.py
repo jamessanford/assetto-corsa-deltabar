@@ -59,7 +59,7 @@ class Delta:
     self.last_sector = -1
     self.sector_wait = None
     self.sectors_available = False  # auto-set to True when available
-    self.bar_mode = FASTEST_LAP
+    self.bar_mode = config.FASTEST_LAP
     self.bar_moves = True
     self.banner_time = 0
     self.first_update = True
@@ -70,7 +70,7 @@ class Delta:
     ac.setBackgroundOpacity(self.data.app_id, 0.0)
     ac.drawBorder(self.data.app_id, 0)
     ac.setIconPosition(self.data.app_id, 0, -10000)
-    ac.setSize(self.data.app_id, APP_WIDTH, APP_HEIGHT)
+    ac.setSize(self.data.app_id, config.APP_WIDTH, config.APP_HEIGHT)
     return 'deltabar'
 
   def acShutdown(self):
@@ -97,12 +97,12 @@ class Delta:
       self.data.clicklabel = ac.addLabel(self.data.app_id, "")
       ac.addOnClickedListener(self.data.clicklabel, sys.modules['deltabar'].onClick)
     ac.setPosition(self.data.clicklabel, 0, 0)
-    ac.setSize(self.data.clicklabel, APP_WIDTH, APP_HEIGHT)
+    ac.setSize(self.data.clicklabel, config.APP_WIDTH, config.APP_HEIGHT)
 
     if not hasattr(self.data, 'bar_area'):
       self.data.bar_area = ac.addLabel(self.data.app_id, "")
     ac.setPosition(self.data.bar_area, 0, 0)
-    ac.setSize(self.data.bar_area, APP_WIDTH, BAR_HEIGHT)
+    ac.setSize(self.data.bar_area, config.APP_WIDTH, config.BAR_HEIGHT)
     # Fill 100% #999999, Fill color erase 5.7 four times
     ac.setBackgroundTexture(self.data.bar_area,
                             'apps/python/deltabar/background.png')
@@ -110,10 +110,10 @@ class Delta:
     if not hasattr(self.data, 'label4'):
       self.data.label4 = ac.addLabel(self.data.app_id, "")
     ac.setPosition(self.data.label4,
-                   BAR_WIDTH_HALF - LABEL4_WIDTH_HALF, LABEL4_Y)
-    ac.setSize(self.data.label4, LABEL4_WIDTH, LABEL4_FONT_SIZE + 4)
+                   config.BAR_WIDTH_HALF - config.LABEL4_WIDTH_HALF, config.LABEL4_Y)
+    ac.setSize(self.data.label4, config.LABEL4_WIDTH, config.LABEL4_FONT_SIZE + 4)
     ac.setFontAlignment(self.data.label4, 'center')
-    ac.setFontSize(self.data.label4, LABEL4_FONT_SIZE)
+    ac.setFontSize(self.data.label4, config.LABEL4_FONT_SIZE)
     # Fill 100% #999999, Fill color erase 5.7 four times
     ac.setBackgroundTexture(self.data.label4,
                             'apps/python/deltabar/textbox.png')
@@ -121,10 +121,10 @@ class Delta:
     if not hasattr(self.data, 'label7'):
       self.data.label7 = ac.addLabel(self.data.app_id, 'p7')
     ac.setPosition(self.data.label7,
-                   BAR_WIDTH_HALF - 100, BANNER_Y)
-    ac.setSize(self.data.label7, 200, BANNER_FONT_SIZE)
+                   config.BAR_WIDTH_HALF - 100, config.BANNER_Y)
+    ac.setSize(self.data.label7, 200, config.BANNER_FONT_SIZE)
     ac.setFontAlignment(self.data.label7, 'center')
-    ac.setFontSize(self.data.label7, BANNER_FONT_SIZE)
+    ac.setFontSize(self.data.label7, config.BANNER_FONT_SIZE)
     ac.setText(self.data.label7, "")
 
     ac.setFontColor(self.data.label4, 0.0, 0.0, 0.0, 1.0)
@@ -251,13 +251,13 @@ class Delta:
       if use_sector:
         self.lap.invalid_sectors[current_sector] = True
 
-    if self.bar_mode == FASTEST_LAP:
+    if self.bar_mode == config.FASTEST_LAP:
       if hasattr(self.data, 'fastest_lap'):
         self.update_bar_data(self.data.fastest_lap, -1, pos,
                              elapsed_seconds, speed_ms, 0, 0)
       else:
         self.clear_screen_data()
-    elif self.bar_mode == SESSION_LAP:
+    elif self.bar_mode == config.SESSION_LAP:
       if hasattr(self.data, 'session_lap'):
         self.update_bar_data(self.data.session_lap, -1, pos,
                              elapsed_seconds, speed_ms, 0, 0)
@@ -266,11 +266,11 @@ class Delta:
     elif not use_sector:
       self.clear_screen_data()
     else:
-      if self.bar_mode == FASTEST_SECTOR:
+      if self.bar_mode == config.FASTEST_SECTOR:
         fastest = self.data.fastest_splits[current_sector]
-      elif self.bar_mode == SESSION_SECTOR:
+      elif self.bar_mode == config.SESSION_SECTOR:
         fastest = self.data.session_splits[current_sector]
-      elif self.bar_mode == FASTEST_OPTIMAL:
+      elif self.bar_mode == config.FASTEST_OPTIMAL:
         # TODO: Clean this up!  It is not pretty but it works.
         fastest = self.data.fastest_splits[current_sector]
         if fastest is None:
@@ -287,7 +287,7 @@ class Delta:
         self.update_bar_data(fastest, current_sector, pos,
                              elapsed_seconds, speed_ms, min1, min2)
         return
-      elif self.bar_mode == SESSION_OPTIMAL:
+      elif self.bar_mode == config.SESSION_OPTIMAL:
         fastest = self.data.session_splits[current_sector]
         if fastest is None:
           self.clear_screen_data()
@@ -464,16 +464,16 @@ class Delta:
 
     # 800 width area, 400 is the middle, 400/2000 is 0.20
     if time_delta < 0:
-      offset = BAR_WIDTH_HALF
+      offset = config.BAR_WIDTH_HALF
     else:
-      offset = BAR_WIDTH_HALF - int(time_delta * BAR_SCALE)
-    width = int((abs(time_delta) * BAR_SCALE))
+      offset = config.BAR_WIDTH_HALF - int(time_delta * config.BAR_SCALE)
+    width = int((abs(time_delta) * config.BAR_SCALE))
     # TODO: consider only using hundredths to pick offset+width,
     # so that position changes only happen when the text changes as well
 
     if width > 0:
       ac.glColor4f(*colors)
-      ac.glQuad(offset, BAR_Y, width, BAR_HEIGHT)  # starts at y=0, is 50 high
+      ac.glQuad(offset, config.BAR_Y, width, config.BAR_HEIGHT)  # starts at y=0, is 50 high
 
     if not label_changed:
       # bail out, do not change the actual label
@@ -483,15 +483,15 @@ class Delta:
       ac.setFontColor(self.data.label4, 0.3, 1.0, 0.3, 1.0)
       if self.bar_moves:
         ac.setPosition(self.data.label4,
-                       min(offset + width - LABEL4_WIDTH_HALF,
-                           APP_WIDTH - LABEL4_WIDTH),
-                       LABEL4_Y)
+                       min(offset + width - config.LABEL4_WIDTH_HALF,
+                           config.APP_WIDTH - config.LABEL4_WIDTH),
+                       config.LABEL4_Y)
     else:
       ac.setFontColor(self.data.label4, 0.85, 0.15, 0.15, 1.0)
       if self.bar_moves:
         ac.setPosition(self.data.label4,
-                       max(0, offset - LABEL4_WIDTH_HALF),
-                       LABEL4_Y)
+                       max(0, offset - config.LABEL4_WIDTH_HALF),
+                       config.LABEL4_Y)
 
     ac.setText(self.data.label4, label_text)
 
@@ -519,14 +519,14 @@ class Delta:
 
   def onClick(self):
     if self.banner_time == 0:
-      current_mode = MODES[self.bar_mode][1]
+      current_mode = config.MODES[self.bar_mode][1]
       self.show_banner(2.2, '{}\n(click again to toggle)'.format(current_mode))
       return
 
     self.bar_mode += 1
-    if self.bar_mode >= len(MODES):
+    if self.bar_mode >= len(config.MODES):
       self.bar_mode = 0
-    self.show_banner(2.2, MODES[self.bar_mode][1])
+    self.show_banner(2.2, config.MODES[self.bar_mode][1])
 
 
 deltabar_app = Delta()
