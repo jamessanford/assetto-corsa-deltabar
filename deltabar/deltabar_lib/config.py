@@ -14,6 +14,7 @@ CONFIG_DEFAULTS = {
   'bar_mode': 0,
   'bar_moves': True,
   'bar_smooth': True,
+  'enable_timing_window': True,
   'sectors': {
     'brands-hatch': [ 0.35944467782974243, 0.7798787355422974, 0 ],
     'imola': [ 0.3146900534629822, 0.6765202879905701, 0 ],

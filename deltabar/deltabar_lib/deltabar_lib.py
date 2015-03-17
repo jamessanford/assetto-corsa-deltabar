@@ -65,6 +65,7 @@ class Delta:
     self.banner_time = 0
     self.first_update = True
     self.label = LabelTracker()
+    self.statusbox = None
 
   def acMain(self, version):
     ac.setTitle(self.data.app_id, "")
@@ -72,13 +73,6 @@ class Delta:
     ac.drawBorder(self.data.app_id, 0)
     ac.setIconPosition(self.data.app_id, 0, -10000)
     ac.setSize(self.data.app_id, config.APP_WIDTH, config.APP_HEIGHT)
-
-    # statusbox window
-    ac.setTitle(self.data.app_id2, "")
-    ac.setBackgroundOpacity(self.data.app_id2, 0.5)
-    ac.drawBorder(self.data.app_id2, 0)
-    ac.setIconPosition(self.data.app_id2, 0, -10000)
-    ac.setSize(self.data.app_id2, 300, 200)
 
     return 'deltabar'
 
@@ -186,6 +180,27 @@ class Delta:
       self.data.session_splits = [None] * getSectorCount()
 
   def reinitialize_statusbox(self):
+    field = 'enable_timing_window'
+    if field not in self.data.config:
+      self.data.config[field] = True
+
+    if not self.data.config[field]:
+      # Window is explicitly disabled, bail out.
+      return
+
+    if not hasattr(self.data, 'app_id2'):
+      app_id2 = ac.newApp('deltabar timer')
+      if app_id2 < 0:
+        return # bail out, new window did not work
+      else:
+        self.data.app_id2 = app_id2
+
+    ac.setTitle(self.data.app_id2, "")
+    ac.setBackgroundOpacity(self.data.app_id2, 0.5)
+    ac.drawBorder(self.data.app_id2, 0)
+    ac.setIconPosition(self.data.app_id2, 0, -10000)
+    ac.setSize(self.data.app_id2, 300, 200)
+
     self.statusbox = statusbox.StatusBox(self.data, getSectorCount(),
                                          bar_mode=self.bar_mode)
     self.statusbox.update_all(self.bar_mode)
@@ -208,7 +223,8 @@ class Delta:
 
     # Update statusbox before we update the fastest lap times,
     # so that the statusbox can show deltas to what "was" the fastest.
-    self.statusbox.update_diff(self.lap)
+    if self.statusbox is not None:
+      self.statusbox.update_diff(self.lap)
 
     if self.lap.complete and not self.lap.invalid:
       if (not hasattr(self.data, 'fastest_lap') or
@@ -219,7 +235,8 @@ class Delta:
         self.data.session_lap = self.lap
 
     # Now show the actual last lap time...
-    self.statusbox.update_last(self.lap)
+    if self.statusbox is not None:
+      self.statusbox.update_last(self.lap)
 
   def acUpdate(self, delta_t):
     if sim_info.info.graphics.status != sim_info.AC_LIVE:
@@ -291,7 +308,7 @@ class Delta:
       if use_sector:
         self.lap.invalid_sectors[current_sector] = True
 
-    if use_sector and current_sector >= 0:
+    if self.statusbox is not None and use_sector and current_sector >= 0:
       self.statusbox.update_frame(self.lap, elapsed_seconds, current_sector,
                                   pos, self.lap.invalid_sectors[current_sector])
 
@@ -469,7 +486,8 @@ class Delta:
       session[sector_number] = self.lap
 
     # Now show the actual optimal time...
-    self.statusbox.update_optimal()
+    if self.statusbox is not None:
+      self.statusbox.update_optimal()
 
   def clear_screen_data(self):
     ac.setVisible(self.data.label4, 0) # delta text
@@ -574,9 +592,11 @@ class Delta:
     self.bar_mode += 1
     if self.bar_mode >= len(config.MODES):
       self.bar_mode = 0
-    # TODO FIXME NOTE statusbox: call update_all whenever lap = None is set
-    self.statusbox.update_all(self.bar_mode)
     self.show_banner(2.2, config.MODES[self.bar_mode][1])
+
+    if self.statusbox is not None:
+      # TODO FIXME NOTE statusbox: call update_all whenever lap = None is set
+      self.statusbox.update_all(self.bar_mode)
 
 
 deltabar_app = Delta()

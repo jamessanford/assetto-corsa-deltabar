@@ -45,8 +45,6 @@ def acMain(ac_version):
     deltabar_data.app_id = ac.newApp('deltabar')
     ac.addRenderCallback(deltabar_data.app_id, onRender)
 
-    deltabar_data.app_id2 = ac.newApp('deltabar timer')
-
     return deltabar_app.acMain(ac_version)
   except:
     log_error()
