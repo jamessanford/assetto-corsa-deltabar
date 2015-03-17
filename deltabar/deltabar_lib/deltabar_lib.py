@@ -8,6 +8,7 @@ from deltabar_lib import sim_info
 from deltabar_lib import config
 from deltabar_lib import lap
 from deltabar_lib import lap_serialize
+from deltabar_lib import statusbox
 
 
 __author__ = 'James Sanford (jsanfordgit@froop.com)'
@@ -184,6 +185,11 @@ class Delta:
     if not hasattr(self.data, 'session_splits'):
       self.data.session_splits = [None] * getSectorCount()
 
+  def reinitialize_statusbox(self):
+    self.statusbox = statusbox.StatusBox(self.data, getSectorCount(),
+                                         bar_mode=self.bar_mode)
+    self.statusbox.update_all(self.bar_mode)
+
   def init_lap(self):
     self.lap.track = getTrack()
     self.lap.car = ac.getCarName(0)
@@ -200,6 +206,10 @@ class Delta:
     self.lap.tires = sim_info.info.graphics.tyreCompound
     self.lap.timestamp = time.time()
 
+    # Update statusbox before we update the fastest lap times,
+    # so that the statusbox can show deltas to what "was" the fastest.
+    self.statusbox.update_diff(self.lap)
+
     if self.lap.complete and not self.lap.invalid:
       if (not hasattr(self.data, 'fastest_lap') or
           self.lap.lap_time < self.data.fastest_lap.lap_time):
@@ -208,6 +218,9 @@ class Delta:
           self.lap.lap_time < self.data.session_lap.lap_time):
         self.data.session_lap = self.lap
 
+    # Now show the actual last lap time...
+    self.statusbox.update_last(self.lap)
+
   def acUpdate(self, delta_t):
     if sim_info.info.graphics.status != sim_info.AC_LIVE:
       return
@@ -215,6 +228,7 @@ class Delta:
     if self.first_update:
       self.first_update = False
       self.reinitialize_app()
+      self.reinitialize_statusbox()
 
     pos = ac.getCarState(0, acsys.CS.NormalizedSplinePosition)
 
@@ -276,6 +290,10 @@ class Delta:
       self.lap.invalid = True
       if use_sector:
         self.lap.invalid_sectors[current_sector] = True
+
+    if use_sector and current_sector >= 0:
+      self.statusbox.update_frame(self.lap, elapsed_seconds, current_sector,
+                                  pos, self.lap.invalid_sectors[current_sector])
 
     if self.bar_mode == config.FASTEST_LAP:
       if hasattr(self.data, 'fastest_lap'):
@@ -450,6 +468,9 @@ class Delta:
         sector_time < session[sector_number].splits[sector_number]):
       session[sector_number] = self.lap
 
+    # Now show the actual optimal time...
+    self.statusbox.update_optimal()
+
   def clear_screen_data(self):
     ac.setVisible(self.data.label4, 0) # delta text
     ac.setText(self.data.label4, "")
@@ -553,6 +574,8 @@ class Delta:
     self.bar_mode += 1
     if self.bar_mode >= len(config.MODES):
       self.bar_mode = 0
+    # TODO FIXME NOTE statusbox: call update_all whenever lap = None is set
+    self.statusbox.update_all(self.bar_mode)
     self.show_banner(2.2, config.MODES[self.bar_mode][1])
 
 
