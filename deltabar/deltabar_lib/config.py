@@ -29,6 +29,43 @@ CONFIG_DEFAULTS = {
 }
 
 
+# TODO: constants that eventually you can override
+APP_WIDTH = 800
+APP_HEIGHT = 75
+
+BAR_WIDTH_HALF = APP_WIDTH / 2
+BAR_HEIGHT = 32
+BAR_Y = 0
+BAR_SCALE = BAR_WIDTH_HALF / 2000.0  # scale 2000 milliseconds into the bar
+
+LABEL4_Y = BAR_Y + BAR_HEIGHT - 7
+LABEL4_FONT_SIZE = 28
+LABEL4_WIDTH = 100
+LABEL4_WIDTH_HALF = LABEL4_WIDTH / 2
+
+BANNER_FONT_SIZE = 22
+BANNER_TEXT_WIDTH = 200
+BANNER_Y = BAR_HEIGHT + 8
+
+
+# constants
+FASTEST_LAP = 0
+FASTEST_SECTOR = 1
+FASTEST_OPTIMAL = 2
+SESSION_LAP = 3
+SESSION_SECTOR = 4
+SESSION_OPTIMAL = 5
+
+MODES = (
+  (FASTEST_LAP,    'vs all-time best lap'),
+  (FASTEST_SECTOR, 'vs all-time best sectors'),
+  (FASTEST_OPTIMAL, 'vs all-time optimal lap'),
+  (SESSION_LAP,    'vs session best lap'),
+  (SESSION_SECTOR, 'vs session best sectors'),
+  (SESSION_OPTIMAL, 'vs session optimal lap'),
+)
+
+
 def my_documents_dir():
   try:
     import winreg
