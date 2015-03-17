@@ -121,8 +121,11 @@ class Delta:
     if not hasattr(self.data, 'label4'):
       self.data.label4 = ac.addLabel(self.data.app_id, "")
     ac.setPosition(self.data.label4,
-                   config.BAR_WIDTH_HALF - config.LABEL4_WIDTH_HALF, config.LABEL4_Y)
-    ac.setSize(self.data.label4, config.LABEL4_WIDTH, config.LABEL4_FONT_SIZE + 4)
+                   config.BAR_WIDTH_HALF - config.LABEL4_WIDTH_HALF,
+                   config.LABEL4_Y)
+    ac.setSize(self.data.label4,
+               config.LABEL4_WIDTH,
+               config.LABEL4_FONT_SIZE + 4)
     ac.setFontAlignment(self.data.label4, 'center')
     ac.setFontSize(self.data.label4, config.LABEL4_FONT_SIZE)
     # Fill 100% #999999, Fill color erase 5.7 four times
@@ -483,12 +486,10 @@ class Delta:
     else:
       offset = config.BAR_WIDTH_HALF - int(time_delta * config.BAR_SCALE)
     width = int((abs(time_delta) * config.BAR_SCALE))
-    # TODO: consider only using hundredths to pick offset+width,
-    # so that position changes only happen when the text changes as well
 
     if width > 0:
       ac.glColor4f(*colors)
-      ac.glQuad(offset, config.BAR_Y, width, config.BAR_HEIGHT)  # starts at y=0, is 50 high
+      ac.glQuad(offset, config.BAR_Y, width, config.BAR_HEIGHT)
 
     if not label_changed:
       # bail out, do not change the actual label (and do not move it)
