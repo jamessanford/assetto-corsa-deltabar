@@ -57,6 +57,7 @@ class Delta:
     self.data = sys.modules['deltabar'].deltabar_data
     self.lap = None
     self.last_sector = -1
+    self.last_session = -1
     self.sector_wait = None
     self.sectors_available = False  # auto-set to True when available
     self.bar_mode = config.FASTEST_LAP
@@ -92,6 +93,9 @@ class Delta:
   def reinitialize_app(self):
     # Avoid a "sector change" until it actually changes.
     self.last_sector = sim_info.info.graphics.currentSectorIndex
+
+    # Note AC_PRACTICE/AC_QUALIFY/AC_RACE transitions.
+    self.last_session = sim_info.info.graphics.session
 
     if not hasattr(self.data, 'clicklabel'):
       self.data.clicklabel = ac.addLabel(self.data.app_id, "")
@@ -217,9 +221,12 @@ class Delta:
         current_sector = self.get_sector(current_lap, pos)
 
     # Exceptional cases that we need to handle first.
-    if current_lap < self.lap.lap_number:
+    if (current_lap < self.lap.lap_number
+        or sim_info.info.graphics.session != self.last_session):
       # Lap number decreased?
-      # Session was reset or changed between practice/qualifying/race.
+      # Session was reset or changed between practice/qualifying/race?
+      self.last_session = sim_info.info.graphics.session
+
       # Abandon the lap and start over.
       self.clear_screen_data()
       self.lap = None
