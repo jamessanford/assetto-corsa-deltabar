@@ -59,7 +59,6 @@ class Delta:
     self.last_sector = -1
     self.last_session = -1
     self.sector_wait = None
-    self.sectors_available = False  # auto-set to True when available
     self.bar_mode = config.FASTEST_LAP
     self.bar_moves = True
     self.banner_time = 0
@@ -96,6 +95,14 @@ class Delta:
 
     # Note AC_PRACTICE/AC_QUALIFY/AC_RACE transitions.
     self.last_session = sim_info.info.graphics.session
+
+    if not hasattr(self.data, 'sectors_available'):
+      # Yes, keep this in self.data, so we can hot reload and still know it.
+      self.data.sectors_available = False  # auto-set to True when available
+
+    # Only one sector? We know what sector you are in.
+    if getSectorCount() == 1:
+      self.data.sectors_available = True
 
     if not hasattr(self.data, 'clicklabel'):
       self.data.clicklabel = ac.addLabel(self.data.app_id, "")
@@ -211,10 +218,10 @@ class Delta:
     current_lap = ac.getCarState(0, acsys.CS.LapCount)
     current_sector = sim_info.info.graphics.currentSectorIndex
 
-    if not self.sectors_available:
+    if not self.data.sectors_available:
       # See if they have become available now.
       if current_sector > 0:
-        self.sectors_available = True
+        self.data.sectors_available = True
       else:
         # Use lookup table.
         # However, beware of the car jumping position (vallelunga).
@@ -385,7 +392,7 @@ class Delta:
 
   def update_sector(self, new_sector):
     if new_sector == 0:
-      if self.sectors_available:
+      if self.data.sectors_available:
         # On a new lap, lastSectorTime is not immediately available
         sector_time = ac.getLastSplits(0)[-1]
       else:
@@ -396,7 +403,7 @@ class Delta:
         self.generate_sector_lookup()
     else:
       # Normal new sector update
-      if self.sectors_available:
+      if self.data.sectors_available:
         sector_time = sim_info.info.graphics.lastSectorTime
       else:
         sector_time = ac.getCarState(0, acsys.CS.LapTime) - sum(self.lap.splits)
@@ -525,6 +532,9 @@ class Delta:
     self.check_banner()
 
   def onClick(self):
+    if self.first_update:
+      return # bail out, nothing is ready
+
     if self.banner_time == 0:
       current_mode = config.MODES[self.bar_mode][1]
       self.show_banner(2.2, '{}\n(click again to toggle)'.format(current_mode))
