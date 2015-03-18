@@ -183,7 +183,7 @@ class Delta:
   def reinitialize_statusbox(self):
     field = 'enable_timing_window'
     if field not in self.data.config:
-      self.data.config[field] = True
+      self.data.config[field] = False
 
     if not self.data.config[field]:
       # Window is explicitly disabled, bail out.

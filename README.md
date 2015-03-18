@@ -1,5 +1,5 @@
 
-## DeltaBar v1.25
+## DeltaBar v1.27
 ## Plugin for Assetto Corsa racing simulator
 ####iRacing-style delta bar with variable color
 ####Uses the sim_info.py module from Rombik
@@ -59,11 +59,11 @@ Usage:
 
 
 ##CHANGELOG:
-v1.25: March 16 2015
+v1.27: March 17 2015
 
  - Support for AC 1.1.2.
  - Support single sector tracks.
- - BETA version of timing window, open the 'deltabar timing' app icon.
+ - BETA version of timing window, 'deltabar timing'.  Enable with `"enable_timing_window": true` in `Documents/Assetto Corsa/plugins/deltabar/config.txt`
 
 v1.20: January 7 2015
 
@@ -87,7 +87,7 @@ v1.01: December 31 2014
 
 Download:
 
- - https://github.com/jamessanford/assetto-corsa-deltabar/archive/deltabar_v125.zip
+ - https://github.com/jamessanford/assetto-corsa-deltabar/archive/deltabar_v127.zip
 
 Source browser:
 
