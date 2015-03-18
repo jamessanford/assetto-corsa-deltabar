@@ -59,6 +59,7 @@ class Delta:
     self.lap = None
     self.last_sector = -1
     self.last_session = -1
+    self.lap_wait = None # Delay when bailing out of invalid laps.
     self.sector_wait = None
     self.bar_mode = config.FASTEST_LAP
     self.bar_moves = True
@@ -250,6 +251,12 @@ class Delta:
     pos = ac.getCarState(0, acsys.CS.NormalizedSplinePosition)
 
     if self.lap is None:
+      if self.lap_wait is not None:
+        if time.time() < self.lap_wait:
+          return
+        else:
+          self.lap_wait = None
+
       if ac.getCarState(0, acsys.CS.LapTime) == 0:
         # Only record once the clock is ticking.
         return
@@ -275,6 +282,7 @@ class Delta:
       # Abandon the lap and start over.
       self.clear_screen_data()
       self.lap = None
+      self.lap_wait = time.time() + 2.0  # Do not begin a new lap for 2 seconds.
       return
 
     if not self.data.sectors_available:
