@@ -35,6 +35,7 @@ The color of the bar is the fun bit: It shows if you are gaining or losing time.
 ![screenshot 4](https://i.imgur.com/JoQoiDu.png)
 
 With `"enable_timing_window": true` in `Documents/Assetto Corsa/plugins/deltabar/config.txt`:
+
 ![screenshot 5](https://i.imgur.com/fq8Ym77.png)
 
 ##INSTALLATION
