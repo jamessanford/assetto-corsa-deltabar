@@ -34,6 +34,9 @@ The color of the bar is the fun bit: It shows if you are gaining or losing time.
 ![screenshot 3](https://i.imgur.com/hqZ4rOL.png)
 ![screenshot 4](https://i.imgur.com/JoQoiDu.png)
 
+With `"enable_timing_window": true` in `config.txt`:
+![screenshot 5](https://i.imgur.com/fq8Ym77.png)
+
 ##INSTALLATION
 
 ####1. Move the entire deltabar folder into:
