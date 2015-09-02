@@ -1,5 +1,6 @@
 import ac
 import sys
+import threading
 import time
 import traceback
 
@@ -27,6 +28,15 @@ def log_error():
 sys.path.insert(0, 'apps/python/deltabar/lib')
 
 
+# DEBUG
+try:
+  import Pyro4.core
+  import Pyro4.utils.flame
+except:
+  log_error()
+  raise
+
+
 class DeltaBarData:
   pass
 
@@ -34,18 +44,51 @@ class DeltaBarData:
 deltabar_data = DeltaBarData()
 
 try:
-  from deltabar_lib.deltabar_lib import deltabar_app
+  import deltabar_lib.deltabar_lib
 except:
   log_error()
   raise
 
 
+try:
+  import encodings.idna
+except:
+  log_error()
+
+
+def pyroserver():
+  Pyro4.config.SERIALIZER = 'pickle'
+  Pyro4.config.PICKLE_PROTOCOL_VERSION = 3
+  Pyro4.config.SERIALIZERS_ACCEPTED = set(['pickle'])
+  Pyro4.config.SOCK_REUSE = True
+  Pyro4.config.DETAILED_TRACEBACK = True
+  Pyro4.config.FLAME_ENABLED = True
+
+  try:
+    # FIXME: Listening on '' is not working here
+    # it listens properly, but the Pyro client then reconnects to localhost
+#    daemon = Pyro4.core.Daemon(host='', port=9999)  # FIXME
+    daemon = Pyro4.core.Daemon(host='192.168.1.41', port=9999)
+    uri = Pyro4.utils.flame.start(daemon)
+    ac.console('uri %s' % uri)
+    daemon.requestLoop()
+    daemon.close()
+  except:
+    log_error()
+    raise
+
+
 def acMain(ac_version):
+  # DEBUG
+  t = threading.Thread(target=pyroserver)
+  t.daemon = True
+  t.start()
+
   try:
     deltabar_data.app_id = ac.newApp('deltabar')
     ac.addRenderCallback(deltabar_data.app_id, onRender)
 
-    return deltabar_app.acMain(ac_version)
+    return deltabar_lib.deltabar_lib.deltabar_app.acMain(ac_version)
   except:
     log_error()
     raise
@@ -56,7 +99,7 @@ def acUpdate(delta_t):
   if has_error:
     return
   try:
-    deltabar_app.acUpdate(delta_t)
+    deltabar_lib.deltabar_lib.deltabar_app.acUpdate(delta_t)
   except:
     log_error()
     has_error = True
@@ -67,7 +110,7 @@ def acShutdown():
   if has_error:
     return
   try:
-    deltabar_app.acShutdown()
+    deltabar_lib.deltabar_lib.deltabar_app.acShutdown()
   except:
     log_error()
     has_error = True
@@ -78,7 +121,7 @@ def onRender(delta_t):
   if has_error:
     return
   try:
-    deltabar_app.onRender(delta_t)
+    deltabar_lib.deltabar_lib.deltabar_app.onRender(delta_t)
   except:
     log_error()
     has_error = True
@@ -89,7 +132,7 @@ def onClick(*args, **kwargs):
   if has_error:
     return
   try:
-    deltabar_app.onClick()
+    deltabar_lib.deltabar_lib.deltabar_app.onClick()
   except:
     log_error()
     has_error = True

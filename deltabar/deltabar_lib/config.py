@@ -103,6 +103,10 @@ def load():
   except:
     return CONFIG_DEFAULTS # NOTE: Silently ignore all errors.
 
+  # Should always have a 'sectors' dict.
+  if 'sectors' not in config_dict:
+    config_dict['sectors'] = {}
+
   # Merge any newly available track sector information.
   for track in CONFIG_DEFAULTS['sectors']:
     if track not in config_dict['sectors']:
