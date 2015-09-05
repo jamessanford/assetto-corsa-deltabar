@@ -39,7 +39,7 @@ class LabelTracker:
     self.old = ""
     self.last = ""
 
-  def update(self, text):
+  def should_update(self, text):
     """Returns True if you should update the label with the new text."""
     if not self.bar_smooth:
       return True
@@ -65,7 +65,7 @@ class Delta:
     self.bar_moves = True
     self.banner_time = 0
     self.first_update = True
-    self.label = LabelTracker()
+    self.label_tracker = LabelTracker()
     self.statusbox = None
 
   def acMain(self, version):
@@ -80,7 +80,7 @@ class Delta:
   def acShutdown(self):
     self.data.config['bar_mode'] = self.bar_mode
     self.data.config['bar_moves'] = self.bar_moves
-    self.data.config['bar_smooth'] = self.label.bar_smooth
+    self.data.config['bar_smooth'] = self.label_tracker.bar_smooth
     if hasattr(self, 'sector_lookup'):
       lookup = self.data.config.setdefault('sectors', {})
       lookup[getTrack()] = self.sector_lookup
@@ -155,7 +155,7 @@ class Delta:
       if 'bar_moves' in self.data.config:
         self.bar_moves = self.data.config['bar_moves']
       if 'bar_smooth' in self.data.config:
-        self.label.bar_smooth = self.data.config['bar_smooth']
+        self.label_tracker.bar_smooth = self.data.config['bar_smooth']
       if ('sectors' in self.data.config and
           track in self.data.config['sectors']):
         self.sector_lookup = self.data.config['sectors'][track]
@@ -513,13 +513,6 @@ class Delta:
       ac.setText(self.data.banner_label, "")
 
   def draw_delta_bar(self, time_delta, speed_delta):
-    plus = '-' if time_delta < 0 else '+'
-    # NOTE: The below .format()s are too much magic.
-    #       We want 234 to be '0.23' and 12345 to be '12.34'
-    ms = '{:04d}'.format(abs(int(time_delta)))
-    label_text = '{}{}{}.{}'.format(plus, self.data.star, ms[0:-3], ms[-3:-1])
-    label_changed = self.label.update(label_text)
-
     # NOTE: Scale from 0.0 meters/sec = 1.0  to  5.0 meters/sec = 0.0
     #       If you change 5.0, change 0.2 to 1/new_value
     x = 1.0 - (min(abs(speed_delta), 5.0) * 0.2)
@@ -528,21 +521,32 @@ class Delta:
     else:
       colors = (1.0, x, x, 1.0)
 
+    clamped_time_delta = time_delta
     if time_delta > 2000:
-      time_delta = 2000
+      clamped_time_delta = 2000
     elif time_delta < -2000:
-      time_delta = -2000
+      clamped_time_delta = -2000
 
     # 800 width area, 400 is the middle, 400/2000 is 0.20
     if time_delta < 0:
       offset = config.BAR_WIDTH_HALF
     else:
-      offset = config.BAR_WIDTH_HALF - int(time_delta * config.BAR_SCALE)
-    width = int((abs(time_delta) * config.BAR_SCALE))
+      offset = config.BAR_WIDTH_HALF - int(clamped_time_delta * config.BAR_SCALE)
+    width = int((abs(clamped_time_delta) * config.BAR_SCALE))
 
     if width > 0:
       ac.glColor4f(*colors)
       ac.glQuad(offset, config.BAR_INNER_Y, width, config.BAR_INNER_HEIGHT)
+
+    self.update_delta_label(time_delta, offset, width)
+
+  def update_delta_label(self, time_delta, offset, width):
+    plus = '-' if time_delta < 0 else '+'
+    # NOTE: The below .format()s are too much magic.
+    #       We want 234 to be '0.23' and 12345 to be '12.34'
+    ms = '{:04d}'.format(abs(int(time_delta)))
+    label_text = '{}{}{}.{}'.format(plus, self.data.star, ms[0:-3], ms[-3:-1])
+    label_changed = self.label_tracker.should_update(label_text)
 
     if not label_changed:
       # bail out, do not change the actual label (and do not move it)
