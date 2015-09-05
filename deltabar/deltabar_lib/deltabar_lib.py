@@ -108,44 +108,43 @@ class Delta:
     if getSectorCount() == 1:
       self.data.sectors_available = True
 
-    if not hasattr(self.data, 'clicklabel'):
-      self.data.clicklabel = ac.addLabel(self.data.app_id, "")
-      ac.addOnClickedListener(self.data.clicklabel, sys.modules['deltabar'].onClick)
-    ac.setPosition(self.data.clicklabel, 0, 0)
-    ac.setSize(self.data.clicklabel, config.APP_WIDTH, config.APP_HEIGHT)
+    if not hasattr(self.data, 'click_label'):
+      self.data.click_label = ac.addLabel(self.data.app_id, '')
+      ac.addOnClickedListener(self.data.click_label, sys.modules['deltabar'].onClick)
+    ac.setPosition(self.data.click_label, 0, 0)
+    ac.setSize(self.data.click_label, config.APP_WIDTH, config.APP_HEIGHT)
 
     if not hasattr(self.data, 'bar_area'):
-      self.data.bar_area = ac.addLabel(self.data.app_id, "")
+      self.data.bar_area = ac.addLabel(self.data.app_id, '')
     ac.setPosition(self.data.bar_area, 0, 0)
-    ac.setSize(self.data.bar_area, config.APP_WIDTH, config.BAR_HEIGHT)
+    ac.setSize(self.data.bar_area, config.BAR_WIDTH, config.BAR_HEIGHT)
     ac.setBackgroundTexture(self.data.bar_area,
                             'apps/python/deltabar/background.png')
 
-    if not hasattr(self.data, 'label4'):
-      self.data.label4 = ac.addLabel(self.data.app_id, "")
-    ac.setPosition(self.data.label4,
-                   config.BAR_WIDTH_HALF - config.LABEL4_WIDTH_HALF,
-                   config.LABEL4_Y)
-    ac.setSize(self.data.label4,
-               config.LABEL4_WIDTH,
-               config.LABEL4_FONT_SIZE + 4)
-    ac.setFontAlignment(self.data.label4, 'center')
-    ac.setFontSize(self.data.label4, config.LABEL4_FONT_SIZE)
+    if not hasattr(self.data, 'delta_label'):
+      self.data.delta_label = ac.addLabel(self.data.app_id, '')
+    ac.setPosition(self.data.delta_label,
+                   config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF,
+                   config.DELTA_LABEL_Y)
+    ac.setSize(self.data.delta_label,
+               config.DELTA_LABEL_WIDTH,
+               config.DELTA_LABEL_FONT_SIZE + 4)
+    ac.setFontAlignment(self.data.delta_label, 'center')
+    ac.setFontSize(self.data.delta_label, config.DELTA_LABEL_FONT_SIZE)
     # Fill 100% #999999, Fill color erase 5.7 four times
-    ac.setBackgroundTexture(self.data.label4,
+    ac.setBackgroundTexture(self.data.delta_label,
                             'apps/python/deltabar/textbox.png')
 
-    if not hasattr(self.data, 'label7'):
-      self.data.label7 = ac.addLabel(self.data.app_id, 'p7')
-    ac.setPosition(self.data.label7,
+    if not hasattr(self.data, 'banner_label'):
+      self.data.banner_label = ac.addLabel(self.data.app_id, '')
+    ac.setPosition(self.data.banner_label,
                    config.BAR_WIDTH_HALF - 100, config.BANNER_Y)
-    ac.setSize(self.data.label7, 200, config.BANNER_FONT_SIZE)
-    ac.setFontAlignment(self.data.label7, 'center')
-    ac.setFontSize(self.data.label7, config.BANNER_FONT_SIZE)
-    ac.setText(self.data.label7, "")
+    ac.setSize(self.data.banner_label, 200, config.BANNER_FONT_SIZE)
+    ac.setFontAlignment(self.data.banner_label, 'center')
+    ac.setFontSize(self.data.banner_label, config.BANNER_FONT_SIZE)
 
-    ac.setFontColor(self.data.label4, 0.0, 0.0, 0.0, 1.0)
-    ac.setFontColor(self.data.label7, 0.945, 0.933, 0.102, 1.0) # yellow
+    ac.setFontColor(self.data.delta_label, 0.0, 0.0, 0.0, 1.0)
+    ac.setFontColor(self.data.banner_label, 0.945, 0.933, 0.102, 1.0)  # yellow
 
     track = getTrack()
 
@@ -497,8 +496,8 @@ class Delta:
       self.statusbox.update_optimal()
 
   def clear_screen_data(self):
-    ac.setVisible(self.data.label4, 0) # delta text
-    ac.setText(self.data.label4, "")
+    ac.setVisible(self.data.delta_label, 0)  # delta text
+    ac.setText(self.data.delta_label, "")
     if hasattr(self.data, 't'):
       del self.data.t
     if hasattr(self.data, 's'):
@@ -506,12 +505,12 @@ class Delta:
 
   def show_banner(self, duration, text):
     self.banner_time = time.time() + duration
-    ac.setText(self.data.label7, text)
+    ac.setText(self.data.banner_label, text)
 
   def check_banner(self):
     if self.banner_time != 0 and time.time() >= self.banner_time:
       self.banner_time = 0
-      ac.setText(self.data.label7, "")
+      ac.setText(self.data.banner_label, "")
 
   def draw_delta_bar(self, time_delta, speed_delta):
     plus = '-' if time_delta < 0 else '+'
@@ -543,27 +542,27 @@ class Delta:
 
     if width > 0:
       ac.glColor4f(*colors)
-      ac.glQuad(offset, config.BAR_Y, width, config.BAR_HEIGHT)
+      ac.glQuad(offset, config.BAR_INNER_Y, width, config.BAR_INNER_HEIGHT)
 
     if not label_changed:
       # bail out, do not change the actual label (and do not move it)
       return
 
     if time_delta < 0:
-      ac.setFontColor(self.data.label4, 0.3, 1.0, 0.3, 1.0)
+      ac.setFontColor(self.data.delta_label, 0.3, 1.0, 0.3, 1.0)
       if self.bar_moves:
-        ac.setPosition(self.data.label4,
-                       min(offset + width - config.LABEL4_WIDTH_HALF,
-                           config.APP_WIDTH - config.LABEL4_WIDTH),
-                       config.LABEL4_Y)
+        ac.setPosition(self.data.delta_label,
+                       min(offset + width - config.DELTA_LABEL_WIDTH_HALF,
+                           config.BAR_WIDTH - config.DELTA_LABEL_WIDTH),
+                       config.DELTA_LABEL_Y)
     else:
-      ac.setFontColor(self.data.label4, 0.85, 0.15, 0.15, 1.0)
+      ac.setFontColor(self.data.delta_label, 0.85, 0.15, 0.15, 1.0)
       if self.bar_moves:
-        ac.setPosition(self.data.label4,
-                       max(0, offset - config.LABEL4_WIDTH_HALF),
-                       config.LABEL4_Y)
+        ac.setPosition(self.data.delta_label,
+                       max(0, offset - config.DELTA_LABEL_WIDTH_HALF),
+                       config.DELTA_LABEL_Y)
 
-    ac.setText(self.data.label4, label_text)
+    ac.setText(self.data.delta_label, label_text)
 
   def onRender(self, delta_t):
     if self.first_update:
@@ -572,11 +571,11 @@ class Delta:
     if (sim_info.info.graphics.status not in (sim_info.AC_LIVE,
                                               sim_info.AC_PAUSE)):
       ac.setVisible(self.data.bar_area, 0)
-      ac.setVisible(self.data.label4, 0)
+      ac.setVisible(self.data.delta_label, 0)
       self.clear_screen_data()
     elif hasattr(self.data, 't') and hasattr(self.data, 's'):
       ac.setVisible(self.data.bar_area, 1)
-      ac.setVisible(self.data.label4, 1)
+      ac.setVisible(self.data.delta_label, 1)
       self.draw_delta_bar(self.data.t, self.data.s)
     else:
       ac.setVisible(self.data.bar_area, 1)
