@@ -118,7 +118,6 @@ class Delta:
       self.data.bar_area = ac.addLabel(self.data.app_id, "")
     ac.setPosition(self.data.bar_area, 0, 0)
     ac.setSize(self.data.bar_area, config.APP_WIDTH, config.BAR_HEIGHT)
-    # Fill 100% #999999, Fill color erase 5.7 four times
     ac.setBackgroundTexture(self.data.bar_area,
                             'apps/python/deltabar/background.png')
 
