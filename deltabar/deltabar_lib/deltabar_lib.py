@@ -596,7 +596,7 @@ class Delta:
 
     if self.banner_time == 0:
       current_mode = config.MODES[self.bar_mode][1]
-      self.show_banner(2.2, '{}\n(click again to toggle)'.format(current_mode))
+      self.show_banner(2.2, '{} (click to toggle)'.format(current_mode))
       return
 
     self.bar_mode += 1
