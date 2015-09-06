@@ -14,6 +14,10 @@ from deltabar_lib import statusbox
 __author__ = 'James Sanford (jsanfordgit@froop.com)'
 
 
+GREEN_COLOR = (0.1, 1.0, 0.1, 1.0)
+YELLOW_COLOR = (1.0, 0.8, 0.0, 1.0)
+
+
 def getSectorCount():
   return max(1, sim_info.info.static.sectorCount)
 
@@ -108,51 +112,56 @@ class Delta:
     if getSectorCount() == 1:
       self.data.sectors_available = True
 
+    # Click on app area handling - used for toggling modes
     if not hasattr(self.data, 'click_label'):
       self.data.click_label = ac.addLabel(self.data.app_id, '')
       ac.addOnClickedListener(self.data.click_label, sys.modules['deltabar'].onClick)
     ac.setPosition(self.data.click_label, 0, 0)
     ac.setSize(self.data.click_label, config.APP_WIDTH, config.APP_HEIGHT)
 
+    # Delta bar main area
     if not hasattr(self.data, 'bar_area'):
       self.data.bar_area = ac.addLabel(self.data.app_id, '')
     ac.setPosition(self.data.bar_area, 0, 0)
     ac.setSize(self.data.bar_area, config.BAR_WIDTH, config.BAR_HEIGHT)
+    # 0x303030 with 0.65 alpha
     ac.setBackgroundTexture(self.data.bar_area,
                             'apps/python/deltabar/background.png')
 
+    # Delta label background area
     if not hasattr(self.data, 'delta_label_area'):
       self.data.delta_label_area = ac.addLabel(self.data.app_id, '')
     ac.setPosition(self.data.delta_label_area,
                    config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF,
                    config.DELTA_LABEL_Y)
     ac.setSize(self.data.delta_label_area,
-               config.DELTA_LABEL_WIDTH,
-               config.DELTA_LABEL_HEIGHT)
+               config.DELTA_LABEL_WIDTH, config.DELTA_LABEL_HEIGHT)
+    # 0x303030 with 0.65 alpha
     ac.setBackgroundTexture(self.data.delta_label_area,
                             'apps/python/deltabar/background_delta.png')
 
+    # Delta label text
     if not hasattr(self.data, 'delta_label'):
       self.data.delta_label = ac.addLabel(self.data.app_id, '')
     ac.setPosition(self.data.delta_label,
                    config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF,
                    config.DELTA_LABEL_TEXT_Y)
     ac.setSize(self.data.delta_label,
-               config.DELTA_LABEL_WIDTH,
-               config.DELTA_LABEL_FONT_SIZE)
+               config.DELTA_LABEL_WIDTH, config.DELTA_LABEL_FONT_SIZE)
     ac.setFontAlignment(self.data.delta_label, 'center')
     ac.setFontSize(self.data.delta_label, config.DELTA_LABEL_FONT_SIZE)
 
+    # Banner label (displays current selected mode)
     if not hasattr(self.data, 'banner_label'):
       self.data.banner_label = ac.addLabel(self.data.app_id, '')
     ac.setPosition(self.data.banner_label,
-                   config.BAR_WIDTH_HALF - 100, config.BANNER_Y)
-    ac.setSize(self.data.banner_label, 200, config.BANNER_FONT_SIZE)
+                   config.BAR_WIDTH_HALF - config.BANNER_TEXT_WIDTH / 2,
+                   config.BANNER_Y)
+    ac.setSize(self.data.banner_label,
+               config.BANNER_TEXT_WIDTH, config.BANNER_FONT_SIZE)
     ac.setFontAlignment(self.data.banner_label, 'center')
     ac.setFontSize(self.data.banner_label, config.BANNER_FONT_SIZE)
-
-    ac.setFontColor(self.data.delta_label, 0.0, 0.0, 0.0, 1.0)
-    ac.setFontColor(self.data.banner_label, 0.945, 0.933, 0.102, 1.0)  # yellow
+    ac.setFontColor(self.data.banner_label, *YELLOW_COLOR)
 
     track = getTrack()
 
@@ -521,26 +530,35 @@ class Delta:
       ac.setText(self.data.banner_label, "")
 
   def draw_delta_bar(self, time_delta, speed_delta):
-    # NOTE: Scale from 0.0 meters/sec = 1.0  to  5.0 meters/sec = 0.0
-    #       If you change 5.0, change 0.2 to 1/new_value
-    x = 1.0 - (min(abs(speed_delta), 5.0) * 0.2)
-    if speed_delta >= 0.0:
-      colors = (x, 1.0, x, 1.0)
-    else:
-      colors = (1.0, x, x, 1.0)
+    bar_color = self.delta_bar_color(speed_delta)
 
     clamped_time_delta = self.clamp_delta_time(time_delta)
     delta_stripe_width = int((abs(clamped_time_delta) * config.BAR_SCALE))
     if time_delta < 0:
       offset = config.BAR_WIDTH_HALF
+      delta_label_position = offset + delta_stripe_width
     else:
       offset = config.BAR_WIDTH_HALF - delta_stripe_width
+      delta_label_position = offset
 
     if delta_stripe_width > 0:
-      ac.glColor4f(*colors)
+      ac.glColor4f(*bar_color)
       ac.glQuad(offset, config.BAR_INNER_Y, delta_stripe_width, config.BAR_INNER_HEIGHT)
 
-    self.update_delta_label(time_delta, offset + width)
+    self.update_delta_label(time_delta, delta_label_position)
+
+  def delta_bar_color(self, speed_delta):
+    # NOTE: Scale from 0.0 meters/sec = 1.0  to  5.0 meters/sec = 0.0
+    #       If you change 5.0, change 0.2 to 1/new_value
+    x = 1.0 - min(abs(speed_delta), 5.0) * 0.2
+    if speed_delta >= 0.0:
+      red = 0.1 + 0.9 * x
+      blue = 0.1 + 0.9 * x ** 1.25
+      return (red, 1.0, blue, 1.0)  # From green to white
+    else:
+      green = x
+      blue = x ** 2.0
+      return (1.0, green, blue, 1.0)  # From red to white
 
   def clamp_delta_time(self, time_delta):
     if time_delta > 2000:
@@ -561,19 +579,24 @@ class Delta:
       # bail out, do not change the actual label (and do not move it)
       return
 
-    if time_delta < 0:
-      ac.setFontColor(self.data.delta_label, 0.3, 1.0, 0.3, 1.0)
-      if self.bar_moves:
+    font_color = self.delta_label_color(time_delta)
+    ac.setFontColor(self.data.delta_label, *font_color)
+
+    if self.bar_moves:
+      if time_delta < 0:
         position = min(position - config.DELTA_LABEL_WIDTH_HALF,
                        config.BAR_WIDTH - config.DELTA_LABEL_WIDTH)
-        self.set_delta_label_position(position)
-    else:
-      ac.setFontColor(self.data.delta_label, 0.85, 0.15, 0.15, 1.0)
-      if self.bar_moves:
+      else:
         position = max(0, position - config.DELTA_LABEL_WIDTH_HALF)
-        self.set_delta_label_position(position)
+      self.set_delta_label_position(position)
 
     ac.setText(self.data.delta_label, label_text)
+
+  def delta_label_color(self, time_delta):
+    if time_delta < 0:
+      return GREEN_COLOR
+    else:
+      return YELLOW_COLOR
 
   def set_delta_label_visible(self, visible):
     ac.setVisible(self.data.delta_label_area, visible)
