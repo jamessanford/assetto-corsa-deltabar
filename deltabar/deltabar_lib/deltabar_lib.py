@@ -504,8 +504,7 @@ class Delta:
       self.statusbox.update_optimal()
 
   def clear_screen_data(self):
-    ac.setVisible(self.data.delta_label_area, 0)
-    ac.setVisible(self.data.delta_label, 0)  # delta text
+    self.set_delta_label_visible(0)
     ac.setText(self.data.delta_label, "")
     if hasattr(self.data, 't'):
       del self.data.t
@@ -530,26 +529,27 @@ class Delta:
     else:
       colors = (1.0, x, x, 1.0)
 
-    clamped_time_delta = time_delta
-    if time_delta > 2000:
-      clamped_time_delta = 2000
-    elif time_delta < -2000:
-      clamped_time_delta = -2000
-
-    # 800 width area, 400 is the middle, 400/2000 is 0.20
+    clamped_time_delta = self.clamp_delta_time(time_delta)
+    delta_stripe_width = int((abs(clamped_time_delta) * config.BAR_SCALE))
     if time_delta < 0:
       offset = config.BAR_WIDTH_HALF
     else:
-      offset = config.BAR_WIDTH_HALF - int(clamped_time_delta * config.BAR_SCALE)
-    width = int((abs(clamped_time_delta) * config.BAR_SCALE))
+      offset = config.BAR_WIDTH_HALF - delta_stripe_width
 
-    if width > 0:
+    if delta_stripe_width > 0:
       ac.glColor4f(*colors)
-      ac.glQuad(offset, config.BAR_INNER_Y, width, config.BAR_INNER_HEIGHT)
+      ac.glQuad(offset, config.BAR_INNER_Y, delta_stripe_width, config.BAR_INNER_HEIGHT)
 
-    self.update_delta_label(time_delta, offset, width)
+    self.update_delta_label(time_delta, offset + width)
 
-  def update_delta_label(self, time_delta, offset, width):
+  def clamp_delta_time(self, time_delta):
+    if time_delta > 2000:
+      return 2000
+    elif time_delta < -2000:
+      return -2000
+    return time_delta
+
+  def update_delta_label(self, time_delta, position):
     plus = '-' if time_delta < 0 else '+'
     # NOTE: The below .format()s are too much magic.
     #       We want 234 to be '0.23' and 12345 to be '12.34'
@@ -564,25 +564,24 @@ class Delta:
     if time_delta < 0:
       ac.setFontColor(self.data.delta_label, 0.3, 1.0, 0.3, 1.0)
       if self.bar_moves:
-        ac.setPosition(self.data.delta_label_area,
-                       min(offset + width - config.DELTA_LABEL_WIDTH_HALF,
-                           config.BAR_WIDTH - config.DELTA_LABEL_WIDTH),
-                       config.DELTA_LABEL_Y)
-        ac.setPosition(self.data.delta_label,
-                       min(offset + width - config.DELTA_LABEL_WIDTH_HALF,
-                           config.BAR_WIDTH - config.DELTA_LABEL_WIDTH),
-                       config.DELTA_LABEL_TEXT_Y)
+        position = min(position - config.DELTA_LABEL_WIDTH_HALF,
+                       config.BAR_WIDTH - config.DELTA_LABEL_WIDTH)
+        self.set_delta_label_position(position)
     else:
       ac.setFontColor(self.data.delta_label, 0.85, 0.15, 0.15, 1.0)
       if self.bar_moves:
-        ac.setPosition(self.data.delta_label_area,
-                       max(0, offset - config.DELTA_LABEL_WIDTH_HALF),
-                       config.DELTA_LABEL_Y)
-        ac.setPosition(self.data.delta_label,
-                       max(0, offset - config.DELTA_LABEL_WIDTH_HALF),
-                       config.DELTA_LABEL_TEXT_Y)
+        position = max(0, position - config.DELTA_LABEL_WIDTH_HALF)
+        self.set_delta_label_position(position)
 
     ac.setText(self.data.delta_label, label_text)
+
+  def set_delta_label_visible(self, visible):
+    ac.setVisible(self.data.delta_label_area, visible)
+    ac.setVisible(self.data.delta_label, visible)
+
+  def set_delta_label_position(self, x):
+    ac.setPosition(self.data.delta_label_area, x, config.DELTA_LABEL_Y)
+    ac.setPosition(self.data.delta_label, x, config.DELTA_LABEL_TEXT_Y)
 
   def onRender(self, delta_t):
     if self.first_update:
@@ -591,13 +590,11 @@ class Delta:
     if (sim_info.info.graphics.status not in (sim_info.AC_LIVE,
                                               sim_info.AC_PAUSE)):
       ac.setVisible(self.data.bar_area, 0)
-      ac.setVisible(self.data.delta_label_area, 0)
-      ac.setVisible(self.data.delta_label, 0)
+      self.set_delta_label_visible(0)
       self.clear_screen_data()
     elif hasattr(self.data, 't') and hasattr(self.data, 's'):
       ac.setVisible(self.data.bar_area, 1)
-      ac.setVisible(self.data.delta_label_area, 1)
-      ac.setVisible(self.data.delta_label, 1)
+      self.set_delta_label_visible(1)
       self.draw_delta_bar(self.data.t, self.data.s)
     else:
       ac.setVisible(self.data.bar_area, 1)
