@@ -55,6 +55,7 @@ Best: 1:37.832   +1.43    <- on lap changes
 def format_time(ms, invalid=False, delta=False):
   """change milliseconds into minutes:seconds.thousandths"""
   star = '*' if invalid else ''
+  ms = int(ms)
   if ms < 0:
     sign = '-'
   elif delta:
