@@ -15,6 +15,8 @@ from deltabar_lib import statusbox
 __author__ = 'James Sanford (jsanfordgit@froop.com)'
 
 
+# 0x303030 with 0.65 alpha
+BACKGROUND_COLOR = (48.0/255.0, 48.0/255.0, 48.0/255.0, 0.65)
 GREEN_COLOR = (0.1, 1.0, 0.1, 1.0)
 YELLOW_COLOR = (1.0, 0.8, 0.0, 1.0)
 
@@ -142,9 +144,8 @@ class Delta:
     # Delta bar main area
     if not hasattr(self.data, 'bar_area'):
       self.data.bar_area = ac.addLabel(self.data.app_id, '')
-    ac.setPosition(self.data.bar_area, 0, 0)
-    ac.setSize(self.data.bar_area, config.BAR_WIDTH, config.BAR_HEIGHT)
-    # 0x303030 with 0.65 alpha
+    ac.setPosition(self.data.bar_area, config.BAR_CORNER_RADIUS, 0)
+    ac.setSize(self.data.bar_area, config.BAR_RECT_WIDTH, config.BAR_HEIGHT)
     ac.setBackgroundTexture(self.data.bar_area,
                             'apps/python/deltabar/background.png')
 
@@ -156,7 +157,6 @@ class Delta:
                    config.DELTA_LABEL_Y)
     ac.setSize(self.data.delta_label_area,
                config.DELTA_LABEL_WIDTH, config.DELTA_LABEL_HEIGHT)
-    # 0x303030 with 0.65 alpha
     ac.setBackgroundTexture(self.data.delta_label_area,
                             'apps/python/deltabar/background_delta.png')
 
@@ -721,10 +721,18 @@ class Delta:
     ac.setPosition(self.data.delta_label_area, x, config.DELTA_LABEL_Y)
     ac.setPosition(self.data.delta_label, x, config.DELTA_LABEL_TEXT_Y)
 
+  def draw_bar_area_caps(self):
+    ac.glColor4f(*BACKGROUND_COLOR)
+    radius = config.BAR_CORNER_RADIUS
+    segments = config.BAR_CORNER_SEGMENTS
+    self.draw_horizontal_cap(radius, 0, -radius, config.BAR_HEIGHT, radius, segments)
+    self.draw_horizontal_cap(config.BAR_WIDTH - radius, 0, radius, config.BAR_HEIGHT, radius, segments)
+
   def onRender(self, delta_t):
     if self.first_update:
       return # bail out, nothing is ready
 
+    self.draw_bar_area_caps()
     if (sim_info.info.graphics.status not in (sim_info.AC_LIVE,
                                               sim_info.AC_PAUSE)):
       ac.setVisible(self.data.bar_area, 0)
