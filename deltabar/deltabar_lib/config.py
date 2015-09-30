@@ -75,11 +75,11 @@ SESSION_SECTOR = 4
 SESSION_OPTIMAL = 5
 
 MODES = (
-  (FASTEST_LAP,    'vs all-time best lap'),
-  (FASTEST_SECTOR, 'vs all-time best sectors'),
+  (FASTEST_LAP,     'vs all-time best lap'),
+  (FASTEST_SECTOR,  'vs all-time best sectors'),
   (FASTEST_OPTIMAL, 'vs all-time optimal lap'),
-  (SESSION_LAP,    'vs session best lap'),
-  (SESSION_SECTOR, 'vs session best sectors'),
+  (SESSION_LAP,     'vs session best lap'),
+  (SESSION_SECTOR,  'vs session best sectors'),
   (SESSION_OPTIMAL, 'vs session optimal lap'),
 )
 
@@ -87,7 +87,8 @@ MODES = (
 def my_documents_dir():
   try:
     import winreg
-    folder_redirection = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+    folder_redirection = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                        r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
     return winreg.QueryValueEx(folder_redirection, 'Personal')[0]
   except:
     return '/tmp/'
@@ -106,7 +107,7 @@ def save(config_dict):
     with open(filename, 'w') as f:
       f.write(json.dumps(config_dict, sort_keys=True, indent=2))
   except:
-    pass # NOTE: Silently fail.
+    pass  # NOTE: Silently fail.
 
 
 def load():
@@ -116,7 +117,7 @@ def load():
     with open(filename, 'r') as f:
       config_dict = json.loads(f.read())
   except:
-    return CONFIG_DEFAULTS # NOTE: Silently ignore all errors.
+    return CONFIG_DEFAULTS  # NOTE: Silently ignore all errors.
 
   # Merge any newly available track sector information.
   for track in CONFIG_DEFAULTS['sectors']:

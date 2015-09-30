@@ -88,7 +88,7 @@ class Delta:
     self.lap = None
     self.last_sector = -1
     self.last_session = -1
-    self.lap_wait = None # Delay when bailing out of invalid laps.
+    self.lap_wait = None  # Delay when bailing out of invalid laps.
     self.sector_wait = None
     self.bar_mode = config.FASTEST_LAP
     self.bar_moves = True
@@ -150,7 +150,7 @@ class Delta:
       if 'bar_smooth' in self.data.config:
         self.label_tracker.bar_smooth = self.data.config['bar_smooth']
       if ('sectors' in self.data.config and
-          track in self.data.config['sectors']):
+              track in self.data.config['sectors']):
         self.sector_lookup = self.data.config['sectors'][track]
 
     if not hasattr(self.data, 'fastest_lap'):
@@ -236,7 +236,7 @@ class Delta:
     if not hasattr(self.data, 'app_id2'):
       app_id2 = ac.newApp('deltabar timer')
       if app_id2 < 0:
-        return # bail out, new window did not work
+        return  # bail out, new window did not work
       else:
         self.data.app_id2 = app_id2
 
@@ -273,10 +273,10 @@ class Delta:
 
     if self.lap.complete and not self.lap.invalid:
       if (not hasattr(self.data, 'fastest_lap') or
-          self.lap.lap_time < self.data.fastest_lap.lap_time):
+              self.lap.lap_time < self.data.fastest_lap.lap_time):
         self.data.fastest_lap = self.lap
       if (not hasattr(self.data, 'session_lap') or
-          self.lap.lap_time < self.data.session_lap.lap_time):
+              self.lap.lap_time < self.data.session_lap.lap_time):
         self.data.session_lap = self.lap
 
     # Now show the actual last lap time...
@@ -317,8 +317,8 @@ class Delta:
 
     # NOTE: When acsys.CS.LapInvalidated works, add here or at numberOfTyresOut.
     # Exceptional cases that we need to handle first.
-    if (current_lap < self.lap.lap_number
-        or sim_info.info.graphics.session != self.last_session):
+    if (current_lap < self.lap.lap_number or
+            sim_info.info.graphics.session != self.last_session):
       # Lap number decreased?
       # Session was reset or changed between practice/qualifying/race?
       self.last_session = sim_info.info.graphics.session
@@ -472,7 +472,7 @@ class Delta:
     # for a few frames.  Use sector_wait to avoid testing sector changes
     # until both the lap and currentSectorIndex have changed.
     if (self.sector_wait is not None and
-        self.sector_wait != (current_lap, current_sector)):
+            self.sector_wait != (current_lap, current_sector)):
       return False  # currentSectorIndex is not yet valid
 
     self.sector_wait = None
@@ -527,14 +527,14 @@ class Delta:
 
     fastest = self.data.fastest_splits
     if (fastest[sector_number] is None or
-        not fastest[sector_number].splits[sector_number] or
-        sector_time < fastest[sector_number].splits[sector_number]):
+            not fastest[sector_number].splits[sector_number] or
+            sector_time < fastest[sector_number].splits[sector_number]):
       fastest[sector_number] = self.lap
 
     session = self.data.session_splits
     if (session[sector_number] is None or
-        not session[sector_number].splits[sector_number] or
-        sector_time < session[sector_number].splits[sector_number]):
+            not session[sector_number].splits[sector_number] or
+            sector_time < session[sector_number].splits[sector_number]):
       session[sector_number] = self.lap
 
     # Now show the actual optimal time...
@@ -603,11 +603,11 @@ class Delta:
     if speed_delta >= 0.0:
       red = 0.1 + 0.9 * x
       blue = 0.1 + 0.9 * math.pow(x, 1.25)
-      return (red, 1.0, blue, 1.0)  # From green to white
+      return red, 1.0, blue, 1.0  # From green to white
     else:
       green = x
       blue = math.pow(x, 2.0)
-      return (1.0, green, blue, 1.0)  # From red to white
+      return 1.0, green, blue, 1.0  # From red to white
 
   def clamp_time_delta(self, time_delta):
     """
@@ -731,7 +731,7 @@ class Delta:
   def draw_delta_label_at_position(self, x):
     ac.setPosition(self.data.delta_label_area, x + config.DELTA_LABEL_CORNER_RADIUS, config.DELTA_LABEL_Y)
     ac.setPosition(self.data.delta_label, x, config.DELTA_LABEL_TEXT_Y)
-    self.draw_delta_label_caps_at_position()
+    self.draw_delta_label_caps_at_position(x)
 
   def draw_delta_label_caps_at_position(self, x):
     ac.glColor4f(*BACKGROUND_COLOR_RGBA)
@@ -752,7 +752,7 @@ class Delta:
 
   def onRender(self, delta_t):
     if self.first_update:
-      return # bail out, nothing is ready
+      return  # bail out, nothing is ready
 
     self.draw_bar_area_caps()
     if (sim_info.info.graphics.status not in (sim_info.AC_LIVE,
@@ -775,7 +775,7 @@ class Delta:
 
   def onClick(self):
     if self.first_update:
-      return # bail out, nothing is ready
+      return  # bail out, nothing is ready
 
     if self.banner_time == 0:
       current_mode = config.MODES[self.bar_mode][1]
