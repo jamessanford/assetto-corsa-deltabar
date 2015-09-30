@@ -6,6 +6,7 @@ import time
 
 from deltabar_lib import sim_info
 
+from deltabar_lib import colors
 from deltabar_lib import config
 from deltabar_lib import lap
 from deltabar_lib import lap_serialize
@@ -15,10 +16,12 @@ from deltabar_lib import statusbox
 __author__ = 'James Sanford (jsanfordgit@froop.com)'
 
 
-# 0x303030 with 0.65 alpha
-BACKGROUND_COLOR = (48.0/255.0, 48.0/255.0, 48.0/255.0, 0.65)
-GREEN_COLOR = (0.1, 1.0, 0.1, 1.0)
-YELLOW_COLOR = (1.0, 0.8, 0.0, 1.0)
+BACKGROUND_COLOR_RGB = colors.rgb_from_hex('#303030')
+BACKGROUND_COLOR_ALPHA = 0.65
+BACKGROUND_COLOR_RGBA = colors.rgba_from_rgb_alpha(BACKGROUND_COLOR_RGB, BACKGROUND_COLOR_ALPHA)
+
+FAST_COLOR = (0.1, 1.0, 0.1, 1.0)
+SLOW_COLOR = (1.0, 0.8, 0.0, 1.0)
 
 
 def getSectorCount():
@@ -134,54 +137,7 @@ class Delta:
     if getSectorCount() == 1:
       self.data.sectors_available = True
 
-    # Click on app area handling - used for toggling modes
-    if not hasattr(self.data, 'click_label'):
-      self.data.click_label = ac.addLabel(self.data.app_id, '')
-      ac.addOnClickedListener(self.data.click_label, sys.modules['deltabar'].onClick)
-    ac.setPosition(self.data.click_label, 0, 0)
-    ac.setSize(self.data.click_label, config.APP_WIDTH, config.APP_HEIGHT)
-
-    # Delta bar main area
-    if not hasattr(self.data, 'bar_area'):
-      self.data.bar_area = ac.addLabel(self.data.app_id, '')
-    ac.setPosition(self.data.bar_area, config.BAR_CORNER_RADIUS, 0)
-    ac.setSize(self.data.bar_area, config.BAR_RECT_WIDTH, config.BAR_HEIGHT)
-    ac.setBackgroundTexture(self.data.bar_area,
-                            'apps/python/deltabar/background.png')
-
-    # Delta label background area
-    if not hasattr(self.data, 'delta_label_area'):
-      self.data.delta_label_area = ac.addLabel(self.data.app_id, '')
-    ac.setPosition(self.data.delta_label_area,
-                   config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF,
-                   config.DELTA_LABEL_Y)
-    ac.setSize(self.data.delta_label_area,
-               config.DELTA_LABEL_WIDTH, config.DELTA_LABEL_HEIGHT)
-    ac.setBackgroundTexture(self.data.delta_label_area,
-                            'apps/python/deltabar/background_delta.png')
-
-    # Delta label text
-    if not hasattr(self.data, 'delta_label'):
-      self.data.delta_label = ac.addLabel(self.data.app_id, '')
-    ac.setPosition(self.data.delta_label,
-                   config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF,
-                   config.DELTA_LABEL_TEXT_Y)
-    ac.setSize(self.data.delta_label,
-               config.DELTA_LABEL_WIDTH, config.DELTA_LABEL_FONT_SIZE)
-    ac.setFontAlignment(self.data.delta_label, 'center')
-    ac.setFontSize(self.data.delta_label, config.DELTA_LABEL_FONT_SIZE)
-
-    # Banner label (displays current selected mode)
-    if not hasattr(self.data, 'banner_label'):
-      self.data.banner_label = ac.addLabel(self.data.app_id, '')
-    ac.setPosition(self.data.banner_label,
-                   config.BAR_WIDTH_HALF - config.BANNER_TEXT_WIDTH / 2,
-                   config.BANNER_Y)
-    ac.setSize(self.data.banner_label,
-               config.BANNER_TEXT_WIDTH, config.BANNER_FONT_SIZE)
-    ac.setFontAlignment(self.data.banner_label, 'center')
-    ac.setFontSize(self.data.banner_label, config.BANNER_FONT_SIZE)
-    ac.setFontColor(self.data.banner_label, *YELLOW_COLOR)
+    self.initialize_ui()
 
     track = getTrack()
 
@@ -214,6 +170,59 @@ class Delta:
 
     if not hasattr(self.data, 'session_splits'):
       self.data.session_splits = [None] * getSectorCount()
+
+  def initialize_ui(self):
+    # Click on app area handling - used for toggling modes
+    if not hasattr(self.data, 'click_label'):
+      self.data.click_label = ac.addLabel(self.data.app_id, '')
+      ac.addOnClickedListener(self.data.click_label, sys.modules['deltabar'].onClick)
+    ac.setPosition(self.data.click_label, 0, 0)
+    ac.setSize(self.data.click_label, config.APP_WIDTH, config.APP_HEIGHT)
+
+    # Delta bar main area
+    if not hasattr(self.data, 'bar_area'):
+      self.data.bar_area = ac.addLabel(self.data.app_id, '')
+    ac.setPosition(self.data.bar_area, config.BAR_CORNER_RADIUS, 0)
+    ac.setSize(self.data.bar_area,
+               config.BAR_WIDTH - 2 * config.BAR_CORNER_RADIUS,
+               config.BAR_HEIGHT)
+    ac.setBackgroundColor(self.data.bar_area, *BACKGROUND_COLOR_RGB)
+    ac.setBackgroundOpacity(self.data.bar_area, BACKGROUND_COLOR_ALPHA)
+
+    # Delta label background area
+    if not hasattr(self.data, 'delta_label_area'):
+      self.data.delta_label_area = ac.addLabel(self.data.app_id, '')
+    ac.setPosition(self.data.delta_label_area,
+                   config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF + config.DELTA_LABEL_CORNER_RADIUS,
+                   config.DELTA_LABEL_Y)
+    ac.setSize(self.data.delta_label_area,
+               config.DELTA_LABEL_WIDTH - 2 * config.DELTA_LABEL_CORNER_RADIUS,
+               config.DELTA_LABEL_HEIGHT)
+    ac.setBackgroundColor(self.data.delta_label_area, *BACKGROUND_COLOR_RGB)
+    ac.setBackgroundOpacity(self.data.delta_label_area, BACKGROUND_COLOR_ALPHA)
+
+    # Delta label text
+    if not hasattr(self.data, 'delta_label'):
+      self.data.delta_label = ac.addLabel(self.data.app_id, '')
+    ac.setPosition(self.data.delta_label,
+                   config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF,
+                   config.DELTA_LABEL_TEXT_Y)
+    ac.setSize(self.data.delta_label,
+               config.DELTA_LABEL_WIDTH, config.DELTA_LABEL_FONT_SIZE)
+    ac.setFontAlignment(self.data.delta_label, 'center')
+    ac.setFontSize(self.data.delta_label, config.DELTA_LABEL_FONT_SIZE)
+
+    # Banner label (displays current selected mode)
+    if not hasattr(self.data, 'banner_label'):
+      self.data.banner_label = ac.addLabel(self.data.app_id, '')
+    ac.setPosition(self.data.banner_label,
+                   config.BAR_WIDTH_HALF - config.BANNER_TEXT_WIDTH / 2,
+                   config.BANNER_Y)
+    ac.setSize(self.data.banner_label,
+               config.BANNER_TEXT_WIDTH, config.BANNER_FONT_SIZE)
+    ac.setFontAlignment(self.data.banner_label, 'center')
+    ac.setFontSize(self.data.banner_label, config.BANNER_FONT_SIZE)
+    ac.setFontColor(self.data.banner_label, *SLOW_COLOR)
 
   def reinitialize_statusbox(self):
     field = 'enable_timing_window'
@@ -698,7 +707,9 @@ class Delta:
                        config.BAR_WIDTH - config.DELTA_LABEL_WIDTH)
       else:
         position = max(0, position - config.DELTA_LABEL_WIDTH_HALF)
-      self.set_delta_label_position(position)
+    else:
+      position = config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF
+    self.draw_delta_label_at_position(position)
 
     ac.setText(self.data.delta_label, label_text)
 
@@ -709,24 +720,35 @@ class Delta:
     :return: calculated color
     """
     if time_delta < 0:
-      return GREEN_COLOR
+      return FAST_COLOR
     else:
-      return YELLOW_COLOR
+      return SLOW_COLOR
 
   def set_delta_label_visible(self, visible):
     ac.setVisible(self.data.delta_label_area, visible)
     ac.setVisible(self.data.delta_label, visible)
 
-  def set_delta_label_position(self, x):
-    ac.setPosition(self.data.delta_label_area, x, config.DELTA_LABEL_Y)
+  def draw_delta_label_at_position(self, x):
+    ac.setPosition(self.data.delta_label_area, x + config.DELTA_LABEL_CORNER_RADIUS, config.DELTA_LABEL_Y)
     ac.setPosition(self.data.delta_label, x, config.DELTA_LABEL_TEXT_Y)
+    self.draw_delta_label_caps_at_position()
+
+  def draw_delta_label_caps_at_position(self, x):
+    ac.glColor4f(*BACKGROUND_COLOR_RGBA)
+    radius = config.DELTA_LABEL_CORNER_RADIUS
+    segments = config.DELTA_LABEL_CORNER_SEGMENTS
+    y = config.DELTA_LABEL_Y
+    height = config.DELTA_LABEL_HEIGHT
+    self.draw_horizontal_cap(x + radius, y, -radius, height, radius, segments)
+    self.draw_horizontal_cap(x + config.DELTA_LABEL_WIDTH + radius, y, radius, height, radius, segments)
 
   def draw_bar_area_caps(self):
-    ac.glColor4f(*BACKGROUND_COLOR)
+    ac.glColor4f(*BACKGROUND_COLOR_RGBA)
     radius = config.BAR_CORNER_RADIUS
     segments = config.BAR_CORNER_SEGMENTS
-    self.draw_horizontal_cap(radius, 0, -radius, config.BAR_HEIGHT, radius, segments)
-    self.draw_horizontal_cap(config.BAR_WIDTH - radius, 0, radius, config.BAR_HEIGHT, radius, segments)
+    height = config.BAR_HEIGHT
+    self.draw_horizontal_cap(radius, 0, -radius, height, radius, segments)
+    self.draw_horizontal_cap(config.BAR_WIDTH - radius, 0, radius, height, radius, segments)
 
   def onRender(self, delta_t):
     if self.first_update:
