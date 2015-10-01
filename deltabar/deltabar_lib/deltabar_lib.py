@@ -16,17 +16,24 @@ from deltabar_lib import statusbox
 __author__ = 'James Sanford (jsanfordgit@froop.com)'
 
 
-def get_sector_count():
-  return max(1, sim_info.info.static.sectorCount)
+class Track:
+  """
+  Track info.
+  """
 
+  def __init__(self):
+    self.name = self.get_track_name()
+    self.sector_count = self.get_sector_count()
 
-def get_track():
-  track = ac.getTrackName(0)
-  track_config = ac.getTrackConfiguration(0)
-  if track_config:
-    track = '{}-{}'.format(track, track_config)
+  def get_track_name(self):
+    track = ac.getTrackName(0)
+    track_config = ac.getTrackConfiguration(0)
+    if track_config:
+      track = '{}-{}'.format(track, track_config)
+    return track
 
-  return track
+  def get_sector_count(self):
+    return max(1, sim_info.info.static.sectorCount)
 
 
 class LabelTracker:
@@ -58,6 +65,7 @@ class LabelTracker:
 class Delta:
   def __init__(self):
     self.data = sys.modules['deltabar'].deltabar_data
+    self.track = Track()
     self.lap = None
     self.last_sector = -1
     self.last_session = -1
@@ -82,7 +90,7 @@ class Delta:
     self.data.config['bar_smooth'] = self.label_tracker.bar_smooth
     if hasattr(self, 'sector_lookup'):
       lookup = self.data.config.setdefault('sectors', {})
-      lookup[get_track()] = self.sector_lookup
+      lookup[self.track.name] = self.sector_lookup
     config.save(self.data.config)
 
     if hasattr(self.data, 'fastest_lap') and not self.data.fastest_lap.fromfile:
@@ -104,12 +112,12 @@ class Delta:
       self.data.sectors_available = False  # auto-set to True when available
 
     # Only one sector? We know what sector you are in.
-    if get_sector_count() == 1:
+    if self.track.sector_count == 1:
       self.data.sectors_available = True
 
     self.ui.reinitialize()
 
-    track = get_track()
+    track = self.track.name
 
     if not hasattr(self.data, 'config'):
       self.data.config = config.load()
@@ -125,21 +133,21 @@ class Delta:
 
     if not hasattr(self.data, 'fastest_lap'):
       rlap = lap_serialize.load(track, ac.getCarName(0), 'best',
-                                sector_count=get_sector_count())
+                                sector_count=self.track.sector_count)
       if rlap is not None:
         self.data.fastest_lap = rlap
 
     if not hasattr(self.data, 'fastest_splits'):
       self.data.fastest_splits = []
-      for sector_number in range(get_sector_count()):
+      for sector_number in range(self.track.sector_count):
         rlap = lap_serialize.load(track,
                                   ac.getCarName(0),
                                   'q{}'.format(sector_number + 1),
-                                  sector_count=get_sector_count())
+                                  sector_count=self.track.sector_count)
         self.data.fastest_splits.append(rlap)  # May be None
 
     if not hasattr(self.data, 'session_splits'):
-      self.data.session_splits = [None] * get_sector_count()
+      self.data.session_splits = [None] * self.track.sector_count
 
   def reinitialize_statusbox(self):
     field = 'enable_timing_window'
@@ -163,16 +171,16 @@ class Delta:
     ac.setIconPosition(self.data.app_id2, 0, -10000)
     ac.setSize(self.data.app_id2, 300, 200)
 
-    self.statusbox = statusbox.StatusBox(self.data, get_sector_count(),
+    self.statusbox = statusbox.StatusBox(self.data, self.track.sector_count,
                                          bar_mode=self.bar_mode)
     self.statusbox.update_all(self.bar_mode)
 
   def init_lap(self):
-    self.lap.track = get_track()
+    self.lap.track = self.track.name
     self.lap.car = ac.getCarName(0)
     self.lap.lap_number = ac.getCarState(0, acsys.CS.LapCount)
-    self.lap.splits = [0] * get_sector_count()
-    self.lap.invalid_sectors = [False] * get_sector_count()
+    self.lap.splits = [0] * self.track.sector_count
+    self.lap.invalid_sectors = [False] * self.track.sector_count
 
   def finalize_lap(self):
     if sim_info.info.graphics.iLastTime:
@@ -368,7 +376,7 @@ class Delta:
         # sectors not available
         return -1
       elif pos >= self.sector_lookup[self.last_sector]:
-        if self.last_sector < get_sector_count() - 1:
+        if self.last_sector < self.track.sector_count - 1:
           return self.last_sector + 1
     return self.last_sector
 
@@ -428,7 +436,7 @@ class Delta:
 
     sector_number = new_sector - 1  # 'last'
     if sector_number == -1:
-      sector_number = get_sector_count() - 1
+      sector_number = self.track.sector_count - 1
 
     # Always record the time, even if the lap is invalid.
     self.lap.splits[sector_number] = sector_time
@@ -518,6 +526,10 @@ class Delta:
 
 
 class DeltaBarUI:
+  """
+  User Interface of Delta Bar application.
+  """
+
   BACKGROUND_COLOR_RGB = colors.rgb_from_hex('#303030')
   BACKGROUND_COLOR_ALPHA = 0.65
   BACKGROUND_COLOR_RGBA = colors.rgba_from_rgb_alpha(BACKGROUND_COLOR_RGB, BACKGROUND_COLOR_ALPHA)
