@@ -193,13 +193,11 @@ class Delta:
     if not hasattr(self.data, 'delta_label_area'):
       self.data.delta_label_area = ac.addLabel(self.data.app_id, '')
     ac.setPosition(self.data.delta_label_area,
-                   config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF + config.DELTA_LABEL_CORNER_RADIUS,
+                   config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF,
                    config.DELTA_LABEL_Y)
-    ac.setSize(self.data.delta_label_area,
-               config.DELTA_LABEL_WIDTH - 2 * config.DELTA_LABEL_CORNER_RADIUS,
-               config.DELTA_LABEL_HEIGHT)
-    ac.setBackgroundColor(self.data.delta_label_area, *BACKGROUND_COLOR_RGB)
-    ac.setBackgroundOpacity(self.data.delta_label_area, BACKGROUND_COLOR_ALPHA)
+    ac.setSize(self.data.delta_label_area, config.DELTA_LABEL_WIDTH, config.DELTA_LABEL_HEIGHT)
+    ac.setBackgroundTexture(self.data.delta_label_area,
+                            'apps/python/deltabar/background_delta.png')
 
     # Delta label text
     if not hasattr(self.data, 'delta_label'):
@@ -707,9 +705,7 @@ class Delta:
                        config.BAR_WIDTH - config.DELTA_LABEL_WIDTH)
       else:
         position = max(0, position - config.DELTA_LABEL_WIDTH_HALF)
-    else:
-      position = config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF
-    self.draw_delta_label_at_position(position)
+      self.set_delta_label_position(position)
 
     ac.setText(self.data.delta_label, label_text)
 
@@ -728,19 +724,9 @@ class Delta:
     ac.setVisible(self.data.delta_label_area, visible)
     ac.setVisible(self.data.delta_label, visible)
 
-  def draw_delta_label_at_position(self, x):
-    ac.setPosition(self.data.delta_label_area, x + config.DELTA_LABEL_CORNER_RADIUS, config.DELTA_LABEL_Y)
+  def set_delta_label_position(self, x):
+    ac.setPosition(self.data.delta_label_area, x, config.DELTA_LABEL_Y)
     ac.setPosition(self.data.delta_label, x, config.DELTA_LABEL_TEXT_Y)
-    self.draw_delta_label_caps_at_position(x)
-
-  def draw_delta_label_caps_at_position(self, x):
-    ac.glColor4f(*BACKGROUND_COLOR_RGBA)
-    radius = config.DELTA_LABEL_CORNER_RADIUS
-    segments = config.DELTA_LABEL_CORNER_SEGMENTS
-    y = config.DELTA_LABEL_Y
-    height = config.DELTA_LABEL_HEIGHT
-    self.draw_horizontal_cap(x + radius, y, -radius, height, radius, segments)
-    self.draw_horizontal_cap(x + config.DELTA_LABEL_WIDTH + radius, y, radius, height, radius, segments)
 
   def draw_bar_area_caps(self):
     ac.glColor4f(*BACKGROUND_COLOR_RGBA)
