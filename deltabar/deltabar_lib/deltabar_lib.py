@@ -16,44 +16,17 @@ from deltabar_lib import statusbox
 __author__ = 'James Sanford (jsanfordgit@froop.com)'
 
 
-BACKGROUND_COLOR_RGB = colors.rgb_from_hex('#303030')
-BACKGROUND_COLOR_ALPHA = 0.65
-BACKGROUND_COLOR_RGBA = colors.rgba_from_rgb_alpha(BACKGROUND_COLOR_RGB, BACKGROUND_COLOR_ALPHA)
-
-FAST_COLOR = (0.1, 1.0, 0.1, 1.0)
-SLOW_COLOR = (1.0, 0.8, 0.0, 1.0)
-
-
-def getSectorCount():
+def get_sector_count():
   return max(1, sim_info.info.static.sectorCount)
 
 
-def getTrack():
+def get_track():
   track = ac.getTrackName(0)
   track_config = ac.getTrackConfiguration(0)
   if track_config:
     track = '{}-{}'.format(track, track_config)
 
   return track
-
-
-def sign(x):
-  return math.copysign(1, x)
-
-
-def renderPolygon(p1, p2, p3, p4, reversedNormal):
-  ac.glBegin(3)
-  if not reversedNormal:
-    ac.glVertex2f(*p1)
-    ac.glVertex2f(*p2)
-    ac.glVertex2f(*p3)
-    ac.glVertex2f(*p4)
-  else:
-    ac.glVertex2f(*p1)
-    ac.glVertex2f(*p4)
-    ac.glVertex2f(*p3)
-    ac.glVertex2f(*p2)
-  ac.glEnd()
 
 
 class LabelTracker:
@@ -96,13 +69,10 @@ class Delta:
     self.first_update = True
     self.label_tracker = LabelTracker()
     self.statusbox = None
+    self.ui = DeltaBarUI(self.data, self.label_tracker)
 
   def acMain(self, version):
-    ac.setTitle(self.data.app_id, "")
-    ac.setBackgroundOpacity(self.data.app_id, 0.0)
-    ac.drawBorder(self.data.app_id, 0)
-    ac.setIconPosition(self.data.app_id, 0, -10000)
-    ac.setSize(self.data.app_id, config.APP_WIDTH, config.APP_HEIGHT)
+    self.ui.initialize()
 
     return 'deltabar'
 
@@ -112,7 +82,7 @@ class Delta:
     self.data.config['bar_smooth'] = self.label_tracker.bar_smooth
     if hasattr(self, 'sector_lookup'):
       lookup = self.data.config.setdefault('sectors', {})
-      lookup[getTrack()] = self.sector_lookup
+      lookup[get_track()] = self.sector_lookup
     config.save(self.data.config)
 
     if hasattr(self.data, 'fastest_lap') and not self.data.fastest_lap.fromfile:
@@ -134,12 +104,12 @@ class Delta:
       self.data.sectors_available = False  # auto-set to True when available
 
     # Only one sector? We know what sector you are in.
-    if getSectorCount() == 1:
+    if get_sector_count() == 1:
       self.data.sectors_available = True
 
-    self.initialize_ui()
+    self.ui.reinitialize()
 
-    track = getTrack()
+    track = get_track()
 
     if not hasattr(self.data, 'config'):
       self.data.config = config.load()
@@ -155,72 +125,21 @@ class Delta:
 
     if not hasattr(self.data, 'fastest_lap'):
       rlap = lap_serialize.load(track, ac.getCarName(0), 'best',
-                                sector_count=getSectorCount())
+                                sector_count=get_sector_count())
       if rlap is not None:
         self.data.fastest_lap = rlap
 
     if not hasattr(self.data, 'fastest_splits'):
       self.data.fastest_splits = []
-      for sector_number in range(getSectorCount()):
+      for sector_number in range(get_sector_count()):
         rlap = lap_serialize.load(track,
                                   ac.getCarName(0),
                                   'q{}'.format(sector_number + 1),
-                                  sector_count=getSectorCount())
+                                  sector_count=get_sector_count())
         self.data.fastest_splits.append(rlap)  # May be None
 
     if not hasattr(self.data, 'session_splits'):
-      self.data.session_splits = [None] * getSectorCount()
-
-  def initialize_ui(self):
-    # Click on app area handling - used for toggling modes
-    if not hasattr(self.data, 'click_label'):
-      self.data.click_label = ac.addLabel(self.data.app_id, '')
-      ac.addOnClickedListener(self.data.click_label, sys.modules['deltabar'].onClick)
-    ac.setPosition(self.data.click_label, 0, 0)
-    ac.setSize(self.data.click_label, config.APP_WIDTH, config.APP_HEIGHT)
-
-    # Delta bar main area
-    if not hasattr(self.data, 'bar_area'):
-      self.data.bar_area = ac.addLabel(self.data.app_id, '')
-    ac.setPosition(self.data.bar_area, config.BAR_CORNER_RADIUS, 0)
-    ac.setSize(self.data.bar_area,
-               config.BAR_WIDTH - 2 * config.BAR_CORNER_RADIUS,
-               config.BAR_HEIGHT)
-    ac.setBackgroundColor(self.data.bar_area, *BACKGROUND_COLOR_RGB)
-    ac.setBackgroundOpacity(self.data.bar_area, BACKGROUND_COLOR_ALPHA)
-
-    # Delta label background area
-    if not hasattr(self.data, 'delta_label_area'):
-      self.data.delta_label_area = ac.addLabel(self.data.app_id, '')
-    ac.setPosition(self.data.delta_label_area,
-                   config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF,
-                   config.DELTA_LABEL_Y)
-    ac.setSize(self.data.delta_label_area, config.DELTA_LABEL_WIDTH, config.DELTA_LABEL_HEIGHT)
-    ac.setBackgroundTexture(self.data.delta_label_area,
-                            'apps/python/deltabar/background_delta.png')
-
-    # Delta label text
-    if not hasattr(self.data, 'delta_label'):
-      self.data.delta_label = ac.addLabel(self.data.app_id, '')
-    ac.setPosition(self.data.delta_label,
-                   config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF,
-                   config.DELTA_LABEL_TEXT_Y)
-    ac.setSize(self.data.delta_label,
-               config.DELTA_LABEL_WIDTH, config.DELTA_LABEL_FONT_SIZE)
-    ac.setFontAlignment(self.data.delta_label, 'center')
-    ac.setFontSize(self.data.delta_label, config.DELTA_LABEL_FONT_SIZE)
-
-    # Banner label (displays current selected mode)
-    if not hasattr(self.data, 'banner_label'):
-      self.data.banner_label = ac.addLabel(self.data.app_id, '')
-    ac.setPosition(self.data.banner_label,
-                   config.BAR_WIDTH_HALF - config.BANNER_TEXT_WIDTH / 2,
-                   config.BANNER_Y)
-    ac.setSize(self.data.banner_label,
-               config.BANNER_TEXT_WIDTH, config.BANNER_FONT_SIZE)
-    ac.setFontAlignment(self.data.banner_label, 'center')
-    ac.setFontSize(self.data.banner_label, config.BANNER_FONT_SIZE)
-    ac.setFontColor(self.data.banner_label, *SLOW_COLOR)
+      self.data.session_splits = [None] * get_sector_count()
 
   def reinitialize_statusbox(self):
     field = 'enable_timing_window'
@@ -244,16 +163,16 @@ class Delta:
     ac.setIconPosition(self.data.app_id2, 0, -10000)
     ac.setSize(self.data.app_id2, 300, 200)
 
-    self.statusbox = statusbox.StatusBox(self.data, getSectorCount(),
+    self.statusbox = statusbox.StatusBox(self.data, get_sector_count(),
                                          bar_mode=self.bar_mode)
     self.statusbox.update_all(self.bar_mode)
 
   def init_lap(self):
-    self.lap.track = getTrack()
+    self.lap.track = get_track()
     self.lap.car = ac.getCarName(0)
     self.lap.lap_number = ac.getCarState(0, acsys.CS.LapCount)
-    self.lap.splits = [0] * getSectorCount()
-    self.lap.invalid_sectors = [False] * getSectorCount()
+    self.lap.splits = [0] * get_sector_count()
+    self.lap.invalid_sectors = [False] * get_sector_count()
 
   def finalize_lap(self):
     if sim_info.info.graphics.iLastTime:
@@ -449,7 +368,7 @@ class Delta:
         # sectors not available
         return -1
       elif pos >= self.sector_lookup[self.last_sector]:
-        if self.last_sector < getSectorCount() - 1:
+        if self.last_sector < get_sector_count() - 1:
           return self.last_sector + 1
     return self.last_sector
 
@@ -509,7 +428,7 @@ class Delta:
 
     sector_number = new_sector - 1  # 'last'
     if sector_number == -1:
-      sector_number = getSectorCount() - 1
+      sector_number = get_sector_count() - 1
 
     # Always record the time, even if the lap is invalid.
     self.lap.splits[sector_number] = sector_time
@@ -540,8 +459,8 @@ class Delta:
       self.statusbox.update_optimal()
 
   def clear_screen_data(self):
-    self.set_delta_label_visible(0)
-    ac.setText(self.data.delta_label, "")
+    self.ui.hide_delta_label()
+    self.ui.reset_delta_label_text()
     if hasattr(self.data, 't'):
       del self.data.t
     if hasattr(self.data, 's'):
@@ -549,14 +468,219 @@ class Delta:
 
   def show_banner(self, duration, text):
     self.banner_time = time.time() + duration
-    ac.setText(self.data.banner_label, text)
+    self.ui.set_banner_label_text(text)
 
   def check_banner(self):
     if self.banner_time != 0 and time.time() >= self.banner_time:
       self.banner_time = 0
-      ac.setText(self.data.banner_label, "")
+      self.ui.reset_banner_label_text()
 
-  def draw_delta_bar(self, time_delta, speed_delta):
+  def onRender(self, delta_t):
+    if self.first_update:
+      return  # bail out, nothing is ready
+
+    self.ui.draw_bar_area_caps()
+    if (sim_info.info.graphics.status not in (sim_info.AC_LIVE,
+                                              sim_info.AC_PAUSE)):
+      self.ui.hide_bar_area()
+      self.ui.hide_delta_label()
+      self.clear_screen_data()
+    elif hasattr(self.data, 't') and hasattr(self.data, 's'):
+      self.ui.show_bar_area()
+      self.ui.show_delta_label()
+      self.ui.draw_delta_bar(self.data.t, self.data.s, self.bar_moves)
+    else:
+      self.ui.show_bar_area()
+      self.clear_screen_data()
+
+    if self.banner_time == 0:
+      self.ui.hide_app_background()
+
+    self.check_banner()
+
+  def onClick(self):
+    if self.first_update:
+      return  # bail out, nothing is ready
+
+    if self.banner_time == 0:
+      current_mode = config.MODES[self.bar_mode][1]
+      self.show_banner(2.2, '{} (click to toggle)'.format(current_mode))
+      return
+
+    self.bar_mode += 1
+    if self.bar_mode >= len(config.MODES):
+      self.bar_mode = 0
+    self.show_banner(2.2, config.MODES[self.bar_mode][1])
+
+    if self.statusbox is not None:
+      # TODO FIXME NOTE statusbox: call update_all whenever lap = None is set
+      self.statusbox.update_all(self.bar_mode)
+
+
+class DeltaBarUI:
+  BACKGROUND_COLOR_RGB = colors.rgb_from_hex('#303030')
+  BACKGROUND_COLOR_ALPHA = 0.65
+  BACKGROUND_COLOR_RGBA = colors.rgba_from_rgb_alpha(BACKGROUND_COLOR_RGB, BACKGROUND_COLOR_ALPHA)
+
+  FAST_COLOR = (0.1, 1.0, 0.1, 1.0)
+  SLOW_COLOR = (1.0, 0.8, 0.0, 1.0)
+
+  def __init__(self, deltabar_data, label_tracker):
+    self.data = deltabar_data
+    self.label_tracker = label_tracker
+
+  def initialize(self):
+    ac.setTitle(self.data.app_id, "")
+    self.hide_app_background()
+    ac.drawBorder(self.data.app_id, 0)
+    ac.setIconPosition(self.data.app_id, 0, -10000)
+    ac.setSize(self.data.app_id, config.APP_WIDTH, config.APP_HEIGHT)
+
+  def reinitialize(self):
+    # Click on app area handling - used for toggling modes
+    if not hasattr(self.data, 'click_label'):
+      self.data.click_label = ac.addLabel(self.data.app_id, '')
+      ac.addOnClickedListener(self.data.click_label, sys.modules['deltabar'].onClick)
+    ac.setPosition(self.data.click_label, 0, 0)
+    ac.setSize(self.data.click_label, config.APP_WIDTH, config.APP_HEIGHT)
+
+    # Delta bar main area
+    if not hasattr(self.data, 'bar_area'):
+      self.data.bar_area = ac.addLabel(self.data.app_id, '')
+    ac.setPosition(self.data.bar_area, config.BAR_CORNER_RADIUS, 0)
+    ac.setSize(self.data.bar_area,
+               config.BAR_WIDTH - 2 * config.BAR_CORNER_RADIUS,
+               config.BAR_HEIGHT)
+    ac.setBackgroundColor(self.data.bar_area, *self.BACKGROUND_COLOR_RGB)
+    ac.setBackgroundOpacity(self.data.bar_area, self.BACKGROUND_COLOR_ALPHA)
+
+    # Delta label background area
+    if not hasattr(self.data, 'delta_label_area'):
+      self.data.delta_label_area = ac.addLabel(self.data.app_id, '')
+    ac.setPosition(self.data.delta_label_area,
+                   config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF,
+                   config.DELTA_LABEL_Y)
+    ac.setSize(self.data.delta_label_area, config.DELTA_LABEL_WIDTH, config.DELTA_LABEL_HEIGHT)
+    ac.setBackgroundTexture(self.data.delta_label_area,
+                            'apps/python/deltabar/background_delta.png')
+
+    # Delta label text
+    if not hasattr(self.data, 'delta_label'):
+      self.data.delta_label = ac.addLabel(self.data.app_id, '')
+    ac.setPosition(self.data.delta_label,
+                   config.BAR_WIDTH_HALF - config.DELTA_LABEL_WIDTH_HALF,
+                   config.DELTA_LABEL_TEXT_Y)
+    ac.setSize(self.data.delta_label,
+               config.DELTA_LABEL_WIDTH, config.DELTA_LABEL_FONT_SIZE)
+    ac.setFontAlignment(self.data.delta_label, 'center')
+    ac.setFontSize(self.data.delta_label, config.DELTA_LABEL_FONT_SIZE)
+
+    # Banner label (displays current selected mode)
+    if not hasattr(self.data, 'banner_label'):
+      self.data.banner_label = ac.addLabel(self.data.app_id, '')
+    ac.setPosition(self.data.banner_label,
+                   config.BAR_WIDTH_HALF - config.BANNER_TEXT_WIDTH / 2,
+                   config.BANNER_Y)
+    ac.setSize(self.data.banner_label,
+               config.BANNER_TEXT_WIDTH, config.BANNER_FONT_SIZE)
+    ac.setFontAlignment(self.data.banner_label, 'center')
+    ac.setFontSize(self.data.banner_label, config.BANNER_FONT_SIZE)
+    ac.setFontColor(self.data.banner_label, *self.SLOW_COLOR)
+
+  def hide_app_background(self):
+    ac.setBackgroundOpacity(self.data.app_id, 0.0)
+
+  # Delta label
+
+  def show_delta_label(self):
+    self.set_delta_label_visible(1)
+
+  def hide_delta_label(self):
+    self.set_delta_label_visible(0)
+
+  def set_delta_label_text(self, text):
+    ac.setText(self.data.delta_label, text)
+
+  def reset_delta_label_text(self):
+    ac.setText(self.data.delta_label, '')
+
+  def set_delta_label_visible(self, visible):
+    ac.setVisible(self.data.delta_label_area, visible)
+    ac.setVisible(self.data.delta_label, visible)
+
+  def update_delta_label(self, time_delta, position, bar_moves):
+    """
+    Updates delta label with new value if needed.
+    :param time_delta: time delta value
+    :param position: x coordinate of label center
+    """
+    plus = '-' if time_delta < 0 else '+'
+    # NOTE: The below .format()s are too much magic.
+    #       We want 234 to be '0.23' and 12345 to be '12.34'
+    ms = '{:04d}'.format(abs(int(time_delta)))
+    label_text = '{}{}{}.{}'.format(plus, self.data.star, ms[0:-3], ms[-3:-1])
+    label_changed = self.label_tracker.should_update(label_text)
+
+    if not label_changed:
+      # bail out, do not change the actual label (and do not move it)
+      return
+
+    font_color = self.delta_label_color(time_delta)
+    ac.setFontColor(self.data.delta_label, *font_color)
+
+    if bar_moves:
+      if time_delta < 0:
+        position = min(position - config.DELTA_LABEL_WIDTH_HALF,
+                       config.BAR_WIDTH - config.DELTA_LABEL_WIDTH)
+      else:
+        position = max(0, position - config.DELTA_LABEL_WIDTH_HALF)
+      self.set_delta_label_position(position)
+
+    self.set_delta_label_text(label_text)
+
+  def delta_label_color(self, time_delta):
+    """
+    Calculates delta label color according to time delta value.
+    :param time_delta: time delta value
+    :return: calculated color
+    """
+    if time_delta < 0:
+      return self.FAST_COLOR
+    else:
+      return self.SLOW_COLOR
+
+  def set_delta_label_position(self, x):
+    ac.setPosition(self.data.delta_label_area, x, config.DELTA_LABEL_Y)
+    ac.setPosition(self.data.delta_label, x, config.DELTA_LABEL_TEXT_Y)
+
+  # Banner label
+
+  def set_banner_label_text(self, text):
+    ac.setText(self.data.banner_label, text)
+
+  def reset_banner_label_text(self):
+    ac.setText(self.data.banner_label, '')
+
+  # Delta bar
+
+  def show_bar_area(self):
+    self.set_bar_area_visible(1)
+
+  def hide_bar_area(self):
+    self.set_bar_area_visible(0)
+
+  def set_bar_area_visible(self, visible):
+    ac.setVisible(self.data.bar_area, visible)
+
+  def draw_bar_area_caps(self):
+    ac.glColor4f(*self.BACKGROUND_COLOR_RGBA)
+    radius = config.BAR_CORNER_RADIUS
+    segments = config.BAR_CORNER_SEGMENTS
+    height = config.BAR_HEIGHT
+    self.draw_horizontal_cap(radius, 0, -radius, height, radius, segments)
+    self.draw_horizontal_cap(config.BAR_WIDTH - radius, 0, radius, height, radius, segments)
+
+  def draw_delta_bar(self, time_delta, speed_delta, bar_moves):
     # Color
     bar_color = self.delta_stripe_color(speed_delta)
     ac.glColor4f(*bar_color)
@@ -587,7 +711,7 @@ class Delta:
       ac.glQuad(delta_rect_origin_x, config.BAR_INNER_Y, delta_stripe_rect_width, config.BAR_INNER_HEIGHT)
 
     # Delta label
-    self.update_delta_label(time_delta, delta_label_position)
+    self.update_delta_label(time_delta, delta_label_position, bar_moves)
 
   def delta_stripe_color(self, speed_delta):
     """
@@ -629,7 +753,7 @@ class Delta:
     cap_origin_x = delta_rect_origin_x
     if time_delta < 0:
       cap_origin_x += config.BAR_INNER_RECT_MAX_WIDTH
-    cap_width = - sign(time_delta) * (delta_stripe_width - config.BAR_INNER_RECT_MAX_WIDTH)
+    cap_width = - self.sign(time_delta) * (delta_stripe_width - config.BAR_INNER_RECT_MAX_WIDTH)
 
     self.draw_horizontal_cap(cap_origin_x,
                              config.BAR_INNER_Y,
@@ -637,6 +761,8 @@ class Delta:
                              config.BAR_INNER_HEIGHT,
                              config.BAR_INNER_CORNER_RADIUS,
                              config.BAR_INNER_CORNER_SEGMENTS)
+
+  # Helpers
 
   def draw_horizontal_cap(self, origin_x, origin_y, width, height, corner_radius, corner_segments):
     """
@@ -662,7 +788,7 @@ class Delta:
         break
 
       angle = math.pi / 2 - i * segment_angle
-      segment_x = sign(width) * math.cos(angle) * corner_radius
+      segment_x = self.sign(width) * math.cos(angle) * corner_radius
       if abs(width) <= abs(segment_x):
         completed = True
         segment_x = width
@@ -670,112 +796,31 @@ class Delta:
 
       segment_y = corner_radius * (1 - math.sin(angle))
 
-      renderPolygon((origin_x + last_segment_x, origin_y + last_segment_y),
-                    (origin_x + last_segment_x, bottom_y - last_segment_y),
-                    (origin_x + segment_x, bottom_y - segment_y),
-                    (origin_x + segment_x, origin_y + segment_y),
-                    reversed_normal_of_poly)
+      self.draw_polygon((origin_x + last_segment_x, origin_y + last_segment_y),
+                        (origin_x + last_segment_x, bottom_y - last_segment_y),
+                        (origin_x + segment_x, bottom_y - segment_y),
+                        (origin_x + segment_x, origin_y + segment_y),
+                        reversed_normal_of_poly)
 
       last_segment_x = segment_x
       last_segment_y = segment_y
 
-  def update_delta_label(self, time_delta, position):
-    """
-    Updates delta label with new value if needed.
-    :param time_delta: time delta value
-    :param position: x coordinate of label center
-    """
-    plus = '-' if time_delta < 0 else '+'
-    # NOTE: The below .format()s are too much magic.
-    #       We want 234 to be '0.23' and 12345 to be '12.34'
-    ms = '{:04d}'.format(abs(int(time_delta)))
-    label_text = '{}{}{}.{}'.format(plus, self.data.star, ms[0:-3], ms[-3:-1])
-    label_changed = self.label_tracker.should_update(label_text)
-
-    if not label_changed:
-      # bail out, do not change the actual label (and do not move it)
-      return
-
-    font_color = self.delta_label_color(time_delta)
-    ac.setFontColor(self.data.delta_label, *font_color)
-
-    if self.bar_moves:
-      if time_delta < 0:
-        position = min(position - config.DELTA_LABEL_WIDTH_HALF,
-                       config.BAR_WIDTH - config.DELTA_LABEL_WIDTH)
-      else:
-        position = max(0, position - config.DELTA_LABEL_WIDTH_HALF)
-      self.set_delta_label_position(position)
-
-    ac.setText(self.data.delta_label, label_text)
-
-  def delta_label_color(self, time_delta):
-    """
-    Calculates delta label color according to time delta value.
-    :param time_delta: time delta value
-    :return: calculated color
-    """
-    if time_delta < 0:
-      return FAST_COLOR
+  def draw_polygon(self, p1, p2, p3, p4, reversed_normal):
+    ac.glBegin(3)
+    if not reversed_normal:
+      ac.glVertex2f(*p1)
+      ac.glVertex2f(*p2)
+      ac.glVertex2f(*p3)
+      ac.glVertex2f(*p4)
     else:
-      return SLOW_COLOR
+      ac.glVertex2f(*p1)
+      ac.glVertex2f(*p4)
+      ac.glVertex2f(*p3)
+      ac.glVertex2f(*p2)
+    ac.glEnd()
 
-  def set_delta_label_visible(self, visible):
-    ac.setVisible(self.data.delta_label_area, visible)
-    ac.setVisible(self.data.delta_label, visible)
-
-  def set_delta_label_position(self, x):
-    ac.setPosition(self.data.delta_label_area, x, config.DELTA_LABEL_Y)
-    ac.setPosition(self.data.delta_label, x, config.DELTA_LABEL_TEXT_Y)
-
-  def draw_bar_area_caps(self):
-    ac.glColor4f(*BACKGROUND_COLOR_RGBA)
-    radius = config.BAR_CORNER_RADIUS
-    segments = config.BAR_CORNER_SEGMENTS
-    height = config.BAR_HEIGHT
-    self.draw_horizontal_cap(radius, 0, -radius, height, radius, segments)
-    self.draw_horizontal_cap(config.BAR_WIDTH - radius, 0, radius, height, radius, segments)
-
-  def onRender(self, delta_t):
-    if self.first_update:
-      return  # bail out, nothing is ready
-
-    self.draw_bar_area_caps()
-    if (sim_info.info.graphics.status not in (sim_info.AC_LIVE,
-                                              sim_info.AC_PAUSE)):
-      ac.setVisible(self.data.bar_area, 0)
-      self.set_delta_label_visible(0)
-      self.clear_screen_data()
-    elif hasattr(self.data, 't') and hasattr(self.data, 's'):
-      ac.setVisible(self.data.bar_area, 1)
-      self.set_delta_label_visible(1)
-      self.draw_delta_bar(self.data.t, self.data.s)
-    else:
-      ac.setVisible(self.data.bar_area, 1)
-      self.clear_screen_data()
-
-    if self.banner_time == 0:
-      ac.setBackgroundOpacity(self.data.app_id, 0.0)
-
-    self.check_banner()
-
-  def onClick(self):
-    if self.first_update:
-      return  # bail out, nothing is ready
-
-    if self.banner_time == 0:
-      current_mode = config.MODES[self.bar_mode][1]
-      self.show_banner(2.2, '{} (click to toggle)'.format(current_mode))
-      return
-
-    self.bar_mode += 1
-    if self.bar_mode >= len(config.MODES):
-      self.bar_mode = 0
-    self.show_banner(2.2, config.MODES[self.bar_mode][1])
-
-    if self.statusbox is not None:
-      # TODO FIXME NOTE statusbox: call update_all whenever lap = None is set
-      self.statusbox.update_all(self.bar_mode)
+  def sign(self, x):
+    return math.copysign(1, x)
 
 
 deltabar_app = Delta()
