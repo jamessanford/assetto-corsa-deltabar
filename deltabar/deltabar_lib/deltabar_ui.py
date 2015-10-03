@@ -22,14 +22,13 @@ class DeltaBarUI:
     self.data = deltabar_data
     self.label_tracker = label_tracker
 
-  def initialize(self):
+  def reinitialize(self):
     ac.setTitle(self.data.app_id, "")
     self.hide_app_background()
     ac.drawBorder(self.data.app_id, 0)
     ac.setIconPosition(self.data.app_id, 0, -10000)
     ac.setSize(self.data.app_id, config.APP_WIDTH, config.APP_HEIGHT)
 
-  def reinitialize(self):
     # Click on app area handling - used for toggling modes
     if not hasattr(self.data, 'click_label'):
       self.data.click_label = ac.addLabel(self.data.app_id, '')

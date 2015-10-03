@@ -64,7 +64,7 @@ class LabelTracker:
 class Delta:
   def __init__(self):
     self.data = sys.modules['deltabar'].deltabar_data
-    self.track = Track()
+    self.track = None
     self.lap = None
     self.last_sector = -1
     self.last_session = -1
@@ -79,8 +79,6 @@ class Delta:
     self.ui = deltabar_ui.DeltaBarUI(self.data, self.label_tracker)
 
   def acMain(self, version):
-    self.ui.initialize()
-
     return 'deltabar'
 
   def acShutdown(self):
@@ -100,6 +98,8 @@ class Delta:
         lap_serialize.save(lap, 'q{}'.format(sector_number + 1))
 
   def reinitialize_app(self):
+    self.track = Track()
+
     # Avoid a "sector change" until it actually changes.
     self.last_sector = sim_info.info.graphics.currentSectorIndex
 
@@ -113,8 +113,6 @@ class Delta:
     # Only one sector? We know what sector you are in.
     if self.track.sector_count == 1:
       self.data.sectors_available = True
-
-    self.ui.reinitialize()
 
     track = self.track.name
 
@@ -213,6 +211,7 @@ class Delta:
 
     if self.first_update:
       self.first_update = False
+      self.ui.reinitialize()
       self.reinitialize_app()
       self.reinitialize_statusbox()
 
