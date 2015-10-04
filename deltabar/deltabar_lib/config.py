@@ -2,6 +2,8 @@
 import json
 import os
 
+from deltabar_lib.color import Color
+
 
 # Inside My Documents directory.
 DIR_PARTS = ('Assetto Corsa', 'plugins', 'deltabar')
@@ -62,6 +64,10 @@ DELTA_LABEL_FONT_SIZE = 24
 BANNER_Y = BAR_Y + BAR_HEIGHT + 5
 BANNER_FONT_SIZE = 21
 BANNER_TEXT_WIDTH = 200
+
+BACKGROUND_COLOR = Color('#303030', 0.65)
+FAST_COLOR = Color((0.1, 1.0, 0.1), 1.0)
+SLOW_COLOR = Color((1.0, 0.8, 0.0), 1.0)
 
 
 # constants

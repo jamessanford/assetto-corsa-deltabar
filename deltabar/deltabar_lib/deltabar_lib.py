@@ -21,17 +21,19 @@ class Track:
   """
 
   def __init__(self):
-    self.name = self.get_track_name()
-    self.sector_count = self.get_sector_count()
+    self.name = self._get_track_name()
+    self.sector_count = self._get_sector_count()
 
-  def get_track_name(self):
+  @staticmethod
+  def _get_track_name():
     track = ac.getTrackName(0)
     track_config = ac.getTrackConfiguration(0)
     if track_config:
       track = '{}-{}'.format(track, track_config)
     return track
 
-  def get_sector_count(self):
+  @staticmethod
+  def _get_sector_count():
     return max(1, sim_info.info.static.sectorCount)
 
 
@@ -70,6 +72,7 @@ class Delta:
     self.last_session = -1
     self.lap_wait = None  # Delay when bailing out of invalid laps.
     self.sector_wait = None
+    self.sector_lookup = None
     self.bar_mode = config.FASTEST_LAP
     self.bar_moves = True
     self.banner_time = 0

@@ -2,7 +2,6 @@ import ac
 import math
 import sys
 
-from deltabar_lib import colors
 from deltabar_lib import config
 
 
@@ -10,13 +9,6 @@ class DeltaBarUI:
   """
   User Interface of Delta Bar application.
   """
-
-  BACKGROUND_COLOR_RGB = colors.rgb_from_hex('#303030')
-  BACKGROUND_COLOR_ALPHA = 0.65
-  BACKGROUND_COLOR_RGBA = colors.rgba_from_rgb_alpha(BACKGROUND_COLOR_RGB, BACKGROUND_COLOR_ALPHA)
-
-  FAST_COLOR = (0.1, 1.0, 0.1, 1.0)
-  SLOW_COLOR = (1.0, 0.8, 0.0, 1.0)
 
   def __init__(self, deltabar_data, label_tracker):
     self.data = deltabar_data
@@ -43,8 +35,8 @@ class DeltaBarUI:
     ac.setSize(self.data.bar_area,
                config.BAR_WIDTH - 2 * config.BAR_CORNER_RADIUS,
                config.BAR_HEIGHT)
-    ac.setBackgroundColor(self.data.bar_area, *self.BACKGROUND_COLOR_RGB)
-    ac.setBackgroundOpacity(self.data.bar_area, self.BACKGROUND_COLOR_ALPHA)
+    ac.setBackgroundColor(self.data.bar_area, *config.BACKGROUND_COLOR.rgb)
+    ac.setBackgroundOpacity(self.data.bar_area, config.BACKGROUND_COLOR.alpha)
 
     # Delta label background area
     if not hasattr(self.data, 'delta_label_area'):
@@ -77,7 +69,7 @@ class DeltaBarUI:
                config.BANNER_TEXT_WIDTH, config.BANNER_FONT_SIZE)
     ac.setFontAlignment(self.data.banner_label, 'center')
     ac.setFontSize(self.data.banner_label, config.BANNER_FONT_SIZE)
-    ac.setFontColor(self.data.banner_label, *self.SLOW_COLOR)
+    ac.setFontColor(self.data.banner_label, *config.SLOW_COLOR.rgba)
 
   def hide_app_background(self):
     ac.setBackgroundOpacity(self.data.app_id, 0.0)
@@ -85,22 +77,22 @@ class DeltaBarUI:
   # Delta label
 
   def show_delta_label(self):
-    self.set_delta_label_visible(1)
+    self._set_delta_label_visible(1)
 
   def hide_delta_label(self):
-    self.set_delta_label_visible(0)
+    self._set_delta_label_visible(0)
 
   def set_delta_label_text(self, text):
     ac.setText(self.data.delta_label, text)
 
   def reset_delta_label_text(self):
-    ac.setText(self.data.delta_label, '')
+    self.set_delta_label_text('')
 
-  def set_delta_label_visible(self, visible):
+  def _set_delta_label_visible(self, visible):
     ac.setVisible(self.data.delta_label_area, visible)
     ac.setVisible(self.data.delta_label, visible)
 
-  def update_delta_label(self, time_delta, position, bar_moves):
+  def _update_delta_label(self, time_delta, position, bar_moves):
     """
     Updates delta label with new value if needed.
     :param time_delta: time delta value
@@ -117,7 +109,7 @@ class DeltaBarUI:
       # bail out, do not change the actual label (and do not move it)
       return
 
-    font_color = self.delta_label_color(time_delta)
+    font_color = self._delta_label_color(time_delta)
     ac.setFontColor(self.data.delta_label, *font_color)
 
     if bar_moves:
@@ -126,22 +118,23 @@ class DeltaBarUI:
                        config.BAR_WIDTH - config.DELTA_LABEL_WIDTH)
       else:
         position = max(0, position - config.DELTA_LABEL_WIDTH_HALF)
-      self.set_delta_label_position(position)
+      self._set_delta_label_position(position)
 
     self.set_delta_label_text(label_text)
 
-  def delta_label_color(self, time_delta):
+  @staticmethod
+  def _delta_label_color(time_delta):
     """
     Calculates delta label color according to time delta value.
     :param time_delta: time delta value
     :return: calculated color
     """
     if time_delta < 0:
-      return self.FAST_COLOR
+      return config.FAST_COLOR.rgba
     else:
-      return self.SLOW_COLOR
+      return config.SLOW_COLOR.rgba
 
-  def set_delta_label_position(self, x):
+  def _set_delta_label_position(self, x):
     ac.setPosition(self.data.delta_label_area, x, config.DELTA_LABEL_Y)
     ac.setPosition(self.data.delta_label, x, config.DELTA_LABEL_TEXT_Y)
 
@@ -151,34 +144,34 @@ class DeltaBarUI:
     ac.setText(self.data.banner_label, text)
 
   def reset_banner_label_text(self):
-    ac.setText(self.data.banner_label, '')
+    self.set_banner_label_text('')
 
   # Delta bar
 
   def show_bar_area(self):
-    self.set_bar_area_visible(1)
+    self._set_bar_area_visible(1)
 
   def hide_bar_area(self):
-    self.set_bar_area_visible(0)
+    self._set_bar_area_visible(0)
 
-  def set_bar_area_visible(self, visible):
+  def _set_bar_area_visible(self, visible):
     ac.setVisible(self.data.bar_area, visible)
 
   def draw_bar_area_caps(self):
-    ac.glColor4f(*self.BACKGROUND_COLOR_RGBA)
+    ac.glColor4f(*config.BACKGROUND_COLOR.rgba)
     radius = config.BAR_CORNER_RADIUS
     segments = config.BAR_CORNER_SEGMENTS
     height = config.BAR_HEIGHT
-    self.draw_horizontal_cap(radius, 0, -radius, height, radius, segments)
-    self.draw_horizontal_cap(config.BAR_WIDTH - radius, 0, radius, height, radius, segments)
+    self._draw_horizontal_cap(radius, 0, -radius, height, radius, segments)
+    self._draw_horizontal_cap(config.BAR_WIDTH - radius, 0, radius, height, radius, segments)
 
   def draw_delta_bar(self, time_delta, speed_delta, bar_moves):
     # Color
-    bar_color = self.delta_stripe_color(speed_delta)
+    bar_color = self._delta_stripe_color(speed_delta)
     ac.glColor4f(*bar_color)
 
     # Calculations
-    clamped_time_delta = self.clamp_time_delta(time_delta)
+    clamped_time_delta = self._clamp_time_delta(time_delta)
     delta_stripe_width = int((abs(clamped_time_delta) * config.BAR_SCALE))
     delta_stripe_rect_width = delta_stripe_width
     should_draw_cap = delta_stripe_width > config.BAR_INNER_RECT_MAX_WIDTH
@@ -196,16 +189,17 @@ class DeltaBarUI:
       if time_delta > 0:
         delta_rect_origin_x = config.BAR_WIDTH_HALF - delta_stripe_rect_width
 
-      self.draw_delta_stripe_cap(time_delta, delta_rect_origin_x, delta_stripe_width)
+      self._draw_delta_stripe_cap(time_delta, delta_rect_origin_x, delta_stripe_width)
 
     # Draw stripe rect
     if delta_stripe_width > 0:
       ac.glQuad(delta_rect_origin_x, config.BAR_INNER_Y, delta_stripe_rect_width, config.BAR_INNER_HEIGHT)
 
     # Delta label
-    self.update_delta_label(time_delta, delta_label_position, bar_moves)
+    self._update_delta_label(time_delta, delta_label_position, bar_moves)
 
-  def delta_stripe_color(self, speed_delta):
+  @staticmethod
+  def _delta_stripe_color(speed_delta):
     """
     Calculates delta stripe color according to speed delta value.
     :param speed_delta: speed delta value
@@ -223,7 +217,8 @@ class DeltaBarUI:
       blue = math.pow(x, 2.0)
       return 1.0, green, blue, 1.0  # From red to white
 
-  def clamp_time_delta(self, time_delta):
+  @staticmethod
+  def _clamp_time_delta(time_delta):
     """
     Clamps time delta absolute value to 2 seconds.
     :param time_delta: time delta value
@@ -235,7 +230,8 @@ class DeltaBarUI:
       return -2000
     return time_delta
 
-  def draw_delta_stripe_cap(self, time_delta, delta_rect_origin_x, delta_stripe_width):
+  @staticmethod
+  def _draw_delta_stripe_cap(time_delta, delta_rect_origin_x, delta_stripe_width):
     """
     Draws left or right cap for delta bar stripe
     :param time_delta: time delta value
@@ -245,18 +241,19 @@ class DeltaBarUI:
     cap_origin_x = delta_rect_origin_x
     if time_delta < 0:
       cap_origin_x += config.BAR_INNER_RECT_MAX_WIDTH
-    cap_width = - self.sign(time_delta) * (delta_stripe_width - config.BAR_INNER_RECT_MAX_WIDTH)
+    cap_width = - sign(time_delta) * (delta_stripe_width - config.BAR_INNER_RECT_MAX_WIDTH)
 
-    self.draw_horizontal_cap(cap_origin_x,
-                             config.BAR_INNER_Y,
-                             cap_width,
-                             config.BAR_INNER_HEIGHT,
-                             config.BAR_INNER_CORNER_RADIUS,
-                             config.BAR_INNER_CORNER_SEGMENTS)
+    DeltaBarUI._draw_horizontal_cap(cap_origin_x,
+                                    config.BAR_INNER_Y,
+                                    cap_width,
+                                    config.BAR_INNER_HEIGHT,
+                                    config.BAR_INNER_CORNER_RADIUS,
+                                    config.BAR_INNER_CORNER_SEGMENTS)
 
   # Helpers
 
-  def draw_horizontal_cap(self, origin_x, origin_y, width, height, corner_radius, corner_segments):
+  @staticmethod
+  def _draw_horizontal_cap(origin_x, origin_y, width, height, corner_radius, corner_segments):
     """
     Draws left or right cap for rectangle with rounded corners starting from straight border.
     :param origin_x: x coordinate of straight border
@@ -280,7 +277,7 @@ class DeltaBarUI:
         break
 
       angle = math.pi / 2 - i * segment_angle
-      segment_x = self.sign(width) * math.cos(angle) * corner_radius
+      segment_x = sign(width) * math.cos(angle) * corner_radius
       if abs(width) <= abs(segment_x):
         completed = True
         segment_x = width
@@ -288,16 +285,17 @@ class DeltaBarUI:
 
       segment_y = corner_radius * (1 - math.sin(angle))
 
-      self.draw_polygon((origin_x + last_segment_x, origin_y + last_segment_y),
-                        (origin_x + last_segment_x, bottom_y - last_segment_y),
-                        (origin_x + segment_x, bottom_y - segment_y),
-                        (origin_x + segment_x, origin_y + segment_y),
-                        reversed_normal_of_poly)
+      DeltaBarUI._draw_polygon((origin_x + last_segment_x, origin_y + last_segment_y),
+                               (origin_x + last_segment_x, bottom_y - last_segment_y),
+                               (origin_x + segment_x, bottom_y - segment_y),
+                               (origin_x + segment_x, origin_y + segment_y),
+                               reversed_normal_of_poly)
 
       last_segment_x = segment_x
       last_segment_y = segment_y
 
-  def draw_polygon(self, p1, p2, p3, p4, reversed_normal):
+  @staticmethod
+  def _draw_polygon(p1, p2, p3, p4, reversed_normal):
     ac.glBegin(3)
     if not reversed_normal:
       ac.glVertex2f(*p1)
@@ -311,5 +309,6 @@ class DeltaBarUI:
       ac.glVertex2f(*p2)
     ac.glEnd()
 
-  def sign(self, x):
-    return math.copysign(1, x)
+
+def sign(x):
+  return math.copysign(1, x)
