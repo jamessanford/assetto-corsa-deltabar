@@ -2,6 +2,7 @@
 import array
 import bisect
 
+
 class Lap:
 
   def __init__(self):

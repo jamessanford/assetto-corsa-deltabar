@@ -54,12 +54,12 @@ def save(lap_obj, lap_type):
     return
 
   path, filename, ext = get_path(lap_obj.track, lap_obj.car, lap_type)
-  fullpath = os.path.join(path, '{}.zip'.format(filename))
+  full_path = os.path.join(path, '{}.zip'.format(filename))
 
   os.makedirs(path, exist_ok=True)
-  with zipfile.ZipFile(fullpath, mode='w',
-                       compression=zipfile.ZIP_DEFLATED) as zip:
-    zip.writestr('{}.{}'.format(filename, ext), encode(lap_obj))
+  with zipfile.ZipFile(full_path, mode='w',
+                       compression=zipfile.ZIP_DEFLATED) as zip_file:
+    zip_file.writestr('{}.{}'.format(filename, ext), encode(lap_obj))
   # NOTE: Errors will raise and hopefully get logged.
   #       It is no fun when your fast laps are not saved.
 
@@ -68,10 +68,10 @@ def load(track, car, lap_type, sector_count=None):
   # lap_type == 'best', 'p1', 'p2', ...
 
   path, filename, ext = get_path(track, car, lap_type)
-  fullpath = os.path.join(path, filename)
+  full_path = os.path.join(path, filename)
   try:
-    with zipfile.ZipFile('{}.zip'.format(fullpath), mode='r') as zip:
-      lap = decode((zip.read('{}.{}'.format(filename, ext))).decode('utf-8'))
+    with zipfile.ZipFile('{}.zip'.format(full_path), mode='r') as zip_file:
+      lap = decode((zip_file.read('{}.{}'.format(filename, ext))).decode('utf-8'))
 
       if lap.get_index() < 100:
         raise ValueError('Not enough data to be a correctly saved lap.')
@@ -83,4 +83,4 @@ def load(track, car, lap_type, sector_count=None):
       lap.fromfile = True
       return lap
   except:
-    return None # NOTE: Silently fail.
+    return None  # NOTE: Silently fail.

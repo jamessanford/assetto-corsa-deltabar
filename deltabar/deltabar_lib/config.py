@@ -2,6 +2,8 @@
 import json
 import os
 
+from deltabar_lib.color import Color
+
 
 # Inside My Documents directory.
 DIR_PARTS = ('Assetto Corsa', 'plugins', 'deltabar')
@@ -42,9 +44,12 @@ BAR_HEIGHT = 32
 BAR_Y = 0
 BAR_BORDER_WIDTH = 2
 BAR_SCALE = (BAR_WIDTH_HALF - BAR_BORDER_WIDTH) / 2000.0  # scale 2000 milliseconds into the bar
+BAR_CORNER_RADIUS = 6
+BAR_CORNER_SEGMENTS = 3
+
 BAR_INNER_Y = BAR_Y + BAR_BORDER_WIDTH
 BAR_INNER_HEIGHT = BAR_HEIGHT - 2 * BAR_BORDER_WIDTH
-BAR_INNER_CORNER_RADIUS = 4
+BAR_INNER_CORNER_RADIUS = max(BAR_CORNER_RADIUS - BAR_BORDER_WIDTH, 2)
 BAR_INNER_CORNER_SEGMENTS = 2
 BAR_INNER_RECT_MAX_WIDTH = BAR_WIDTH_HALF - BAR_INNER_CORNER_RADIUS - BAR_BORDER_WIDTH
 
@@ -60,6 +65,10 @@ BANNER_Y = BAR_Y + BAR_HEIGHT + 5
 BANNER_FONT_SIZE = 21
 BANNER_TEXT_WIDTH = 200
 
+BACKGROUND_COLOR = Color('#303030', 0.65)
+FAST_COLOR = Color((0.1, 1.0, 0.1), 1.0)
+SLOW_COLOR = Color((1.0, 0.8, 0.0), 1.0)
+
 
 # constants
 FASTEST_LAP = 0
@@ -70,11 +79,11 @@ SESSION_SECTOR = 4
 SESSION_OPTIMAL = 5
 
 MODES = (
-  (FASTEST_LAP,    'vs all-time best lap'),
-  (FASTEST_SECTOR, 'vs all-time best sectors'),
+  (FASTEST_LAP,     'vs all-time best lap'),
+  (FASTEST_SECTOR,  'vs all-time best sectors'),
   (FASTEST_OPTIMAL, 'vs all-time optimal lap'),
-  (SESSION_LAP,    'vs session best lap'),
-  (SESSION_SECTOR, 'vs session best sectors'),
+  (SESSION_LAP,     'vs session best lap'),
+  (SESSION_SECTOR,  'vs session best sectors'),
   (SESSION_OPTIMAL, 'vs session optimal lap'),
 )
 
@@ -82,7 +91,8 @@ MODES = (
 def my_documents_dir():
   try:
     import winreg
-    folder_redirection = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+    folder_redirection = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                        r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
     return winreg.QueryValueEx(folder_redirection, 'Personal')[0]
   except:
     return '/tmp/'
@@ -101,7 +111,7 @@ def save(config_dict):
     with open(filename, 'w') as f:
       f.write(json.dumps(config_dict, sort_keys=True, indent=2))
   except:
-    pass # NOTE: Silently fail.
+    pass  # NOTE: Silently fail.
 
 
 def load():
@@ -111,7 +121,7 @@ def load():
     with open(filename, 'r') as f:
       config_dict = json.loads(f.read())
   except:
-    return CONFIG_DEFAULTS # NOTE: Silently ignore all errors.
+    return CONFIG_DEFAULTS  # NOTE: Silently ignore all errors.
 
   # Merge any newly available track sector information.
   for track in CONFIG_DEFAULTS['sectors']:
