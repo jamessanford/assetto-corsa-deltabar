@@ -36,8 +36,7 @@ def get_lib_dir():
 # Fix import path for sim_info ctypes
 lib_dir = 'apps/python/deltabar/{}'.format(get_lib_dir())
 sys.path.insert(0, lib_dir)
-# I doubt this is necessary:
-#os.environ['PATH'] += ';.'
+os.environ['PATH'] += ';.'
 
 
 class DeltaBarData:

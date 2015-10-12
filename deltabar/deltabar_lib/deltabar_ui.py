@@ -210,13 +210,12 @@ class DeltaBarUI:
     """
     # NOTE: Scale from 0.0 meters/sec = 1.0  to  5.0 meters/sec = 0.0
     #       If you change 5.0, change 0.2 to 1/new_value
-    if not self.bar_new_colors:
-      x = 1.0 - (min(abs(speed_delta), 5.0) * 0.2)
-      if speed_delta >= 0.0:
-        colors = (x, 1.0, x, 1.0)
-      else:
-        colors = (1.0, x, x, 1.0)
-      return colors
+    x = 1.0 - (min(abs(speed_delta), 5.0) * 0.2)
+    if speed_delta >= 0.0:
+      colors = (x, 1.0, x, 1.0)
+    else:
+      colors = (1.0, x, x, 1.0)
+    return colors
 
   @staticmethod
   def _delta_stripe_color(speed_delta):
