@@ -88,7 +88,7 @@ class Delta:
     self.data.config['bar_mode'] = self.bar_mode
     self.data.config['bar_moves'] = self.bar_moves
     self.data.config['bar_smooth'] = self.label_tracker.bar_smooth
-    if hasattr(self, 'sector_lookup'):
+    if self.sector_lookup is not None:
       lookup = self.data.config.setdefault('sectors', {})
       lookup[self.track.name] = self.sector_lookup
     config.save(self.data.config)
@@ -373,7 +373,7 @@ class Delta:
   def get_sector(self, current_lap, pos):
     # This is only for when currentSectorIndex is not available (multiplayer)
     if self.lap.lap_number == current_lap:
-      if not hasattr(self, 'sector_lookup'):
+      if self.sector_lookup is None:
         # sectors not available
         return -1
       elif pos >= self.sector_lookup[self.last_sector]:
@@ -424,7 +424,7 @@ class Delta:
         sector_time = sim_info.info.graphics.iLastTime - sum(self.lap.splits)
         sector_time = max(0, sector_time)
 
-      if not hasattr(self, 'sector_lookup'):
+      if self.sector_lookup is None:
         self.generate_sector_lookup()
     else:
       # Normal new sector update
