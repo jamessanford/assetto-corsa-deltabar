@@ -167,7 +167,10 @@ class DeltaBarUI:
 
   def draw_delta_bar(self, time_delta, speed_delta, bar_moves):
     # Color
-    bar_color = self._delta_stripe_color(speed_delta)
+    if config.BAR_COLORS_OLD:
+      bar_color = self._delta_stripe_color_old(speed_delta)
+    else:
+      bar_color = self._delta_stripe_color(speed_delta)
     ac.glColor4f(*bar_color)
 
     # Calculations
@@ -197,6 +200,23 @@ class DeltaBarUI:
 
     # Delta label
     self._update_delta_label(time_delta, delta_label_position, bar_moves)
+
+  @staticmethod
+  def _delta_stripe_color_old(speed_delta):
+    """
+    Calculates delta stripe color according to speed delta value.
+    :param speed_delta: speed delta value
+    :return: calculated color
+    """
+    # NOTE: Scale from 0.0 meters/sec = 1.0  to  5.0 meters/sec = 0.0
+    #       If you change 5.0, change 0.2 to 1/new_value
+    if not self.bar_new_colors:
+      x = 1.0 - (min(abs(speed_delta), 5.0) * 0.2)
+      if speed_delta >= 0.0:
+        colors = (x, 1.0, x, 1.0)
+      else:
+        colors = (1.0, x, x, 1.0)
+      return colors
 
   @staticmethod
   def _delta_stripe_color(speed_delta):
