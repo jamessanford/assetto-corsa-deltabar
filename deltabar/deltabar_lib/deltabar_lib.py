@@ -488,7 +488,6 @@ class Delta:
     if self.first_update:
       return  # bail out, nothing is ready
 
-    self.ui.draw_bar_area_caps()
     if (sim_info.info.graphics.status not in (sim_info.AC_LIVE,
                                               sim_info.AC_PAUSE)):
       self.ui.hide_bar_area()
@@ -496,10 +495,12 @@ class Delta:
       self.clear_screen_data()
     elif hasattr(self.data, 't') and hasattr(self.data, 's'):
       self.ui.show_bar_area()
+      self.ui.draw_bar_area_caps()
       self.ui.show_delta_label()
       self.ui.draw_delta_bar(self.data.t, self.data.s, self.bar_moves)
     else:
       self.ui.show_bar_area()
+      self.ui.draw_bar_area_caps()
       self.clear_screen_data()
 
     if self.banner_time == 0:
