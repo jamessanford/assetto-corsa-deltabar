@@ -218,8 +218,6 @@ class Delta:
       self.reinitialize_app()
       self.reinitialize_statusbox()
 
-    pos = ac.getCarState(0, acsys.CS.NormalizedSplinePosition)
-
     if self.lap is None:
       if self.lap_wait is not None:
         if time.time() < self.lap_wait:
@@ -230,10 +228,6 @@ class Delta:
       if ac.getCarState(0, acsys.CS.LapTime) == 0:
         # Only record once the clock is ticking.
         return
-      elif pos > 0.5:
-        # It appears we have not reached the start line yet.
-        # Or at least, not that we know about.
-        return
       else:
         self.lap = lap.Lap()
         self.init_lap()
@@ -242,6 +236,7 @@ class Delta:
     current_sector = sim_info.info.graphics.currentSectorIndex
 
     # NOTE: When acsys.CS.LapInvalidated works, add here or at numberOfTyresOut.
+    #
     # Exceptional cases that we need to handle first.
     if (current_lap < self.lap.lap_number or
             sim_info.info.graphics.session != self.last_session):
@@ -254,6 +249,21 @@ class Delta:
       self.lap = None
       self.lap_wait = time.time() + 2.0  # Do not begin a new lap for 2 seconds.
       return
+
+    pos = ac.getCarState(0, acsys.CS.NormalizedSplinePosition)
+    # NOTE: this is probably buggy, because sometimes the lap timer is running
+    # after resetting the car, but the car is not in the right spot.
+    #
+    # if that happens,
+    # we'll start recording wherever the car happens to be,
+    # but then we will go over 1.0, and wrap,
+    # but our historic data (and future data) will not wrap,
+    # so the delta times will not be found
+    #
+    # we should probably only allow this for KNOWN tracks that wrap.
+    # if it has wrapped and we know this track wraps...
+    if self.lap.position_wrapped(pos):
+      pos += 1.0
 
     if not self.data.sectors_available:
       # See if they have become available now.

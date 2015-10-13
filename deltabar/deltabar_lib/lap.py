@@ -18,6 +18,7 @@ class Lap:
     self.invalid_sectors = []  # should be False * sectorCount
     self.lap_time = 0      # added when complete
     self.splits = []       # added when available
+    self.wrapped = False   # normalizedSplinePosition has wrapped during lap
     self.fromfile = False  # true when loaded from lap serializer
 
     # internal state for reusing the objects during add()
@@ -36,6 +37,20 @@ class Lap:
     self.steering = array.array('d')
     self.gear = array.array('b')
     self.distance_traveled = array.array('d')  # for this lap only.
+
+  def position_wrapped(self, offset):
+    if self.wrapped:
+      return True
+
+    if self._next_index > 1:
+      first = self.offset[0]
+      last = self.offset[self._next_index - 1]
+
+      if offset < first and (offset - 0.05) < 0.0 and (last + 0.05) > 1.0:
+        self.wrapped = True
+        return True
+
+    return False
 
   def next_offset_ok(self, offset):
     if self._next_index > 0:
