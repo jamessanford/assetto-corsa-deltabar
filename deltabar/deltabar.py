@@ -1,4 +1,6 @@
 import ac
+import os
+import platform
 import sys
 import threading
 import time
@@ -25,7 +27,17 @@ def log_error():
   logged_errors.append(msg)
 
 
-sys.path.insert(0, 'apps/python/deltabar/lib')
+def get_lib_dir():
+  if platform.architecture()[0] == '64bit':
+    return 'lib64'
+  else:
+    return 'lib'
+
+
+# Fix import path for sim_info ctypes
+lib_dir = 'apps/python/deltabar/{}'.format(get_lib_dir())
+sys.path.insert(0, lib_dir)
+os.environ['PATH'] += ';.'
 
 
 # DEBUG
@@ -40,8 +52,10 @@ except:
 class DeltaBarData:
   pass
 
+
 # Important to do this before importing deltabar_lib.
 deltabar_data = DeltaBarData()
+
 
 try:
   import deltabar_lib.deltabar_lib
