@@ -1,8 +1,8 @@
 
 ## DeltaBar v1.30
 ## Plugin for Assetto Corsa racing simulator
-####iRacing-style delta bar with variable color
-####Uses the sim_info.py module from Rombik
+#### iRacing-style delta bar with variable color
+#### Uses the sim_info.py module from Rombik
 
 
 > Supported modes, click on the plugin repeatedly to toggle:
@@ -27,32 +27,36 @@ The color of the bar is the fun bit: It shows if you are gaining or losing time.
 
  - It doesn't affect my frame rate on my relatively-low-end CPU, but let me know if something is not working right or it is causing slowdowns.
 
-##SCREENSHOTS
+## SCREENSHOTS
 
 ![screenshot 1](https://i.imgur.com/eKzydcg.png)
+
 ![screenshot 2](https://i.imgur.com/AoqH6lw.png)
+
 ![screenshot 3](https://i.imgur.com/hqZ4rOL.png)
+
 ![screenshot 4](https://i.imgur.com/JoQoiDu.png)
 
 With `"enable_timing_window": true` in `Documents/Assetto Corsa/plugins/deltabar/config.txt`:
 
 ![screenshot 5](https://i.imgur.com/fq8Ym77.png)
 
-##INSTALLATION
+## INSTALLATION
 
-####1. Move the entire deltabar folder into:
+#### 1. Move the entire deltabar folder into:
 
 ```
 C:\Program Files (x86)\Steam\steamapps\common\assettocorsa\apps\python
 ```
 
 
-####2. Run Assetto Corsa, enable the deltabar plugin:
+#### 2. Run Assetto Corsa, enable the deltabar plugin:
+
 ```
    Options -> General -> UI Modules -> deltabar <ENABLED>
 ```
 
-####3.  When in the car cockpit, activate the menus on the right side, scroll all the way near the bottom, *CLICK* on the icon with the `deltabar` tooltip.
+#### 3.  When in the car cockpit, activate the menus on the right side, scroll all the way near the bottom, *CLICK* on the icon with the `deltabar` tooltip.
 
 Usage:
 >   You should see a large rectangle appear.
@@ -62,7 +66,7 @@ Usage:
 >   Click on the rectangle to toggle between display modes.
 
 
-##CHANGELOG:
+## CHANGELOG:
 v1.30: October 12 2015
  - Support for AC 1.3
  - Improved bar look and rounded corners thanks to Alexander
