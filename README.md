@@ -1,11 +1,10 @@
-
 ## DeltaBar v1.30
 ## Plugin for Assetto Corsa racing simulator
-#### iRacing-style delta bar with variable color
-#### Uses the sim_info.py module from Rombik
+#### iRacing-style delta bar with variable color, uses sim_info.py from Rombik
 
+Released at http://www.racedepartment.com/downloads/deltabar.4842/
 
-> Supported modes, click on the plugin repeatedly to toggle:
+> Click repeatedly on plugin to toggle mode:
 >
 > - vs all-time best lap
 > - vs all-time best sectors
