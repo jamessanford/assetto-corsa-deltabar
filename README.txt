@@ -1,37 +1,25 @@
-
 DeltaBar v1.30 - iRacing-style delta bar with variable color
 
   Plugin for Assetto Corsa racing simulator.
+  Released at http://www.racedepartment.com/downloads/deltabar.4842/
   Uses the sim_info.py module from Rombik.
 
+DeltaBar shows time and speed difference compared to your best lap (or sector).
 
-Supported modes, click on the plugin repeatedly to toggle:
-- vs all-time best lap
-- vs all-time best sectors
-- vs all-time optimal lap
-- vs session best lap
-- vs session best sectors
-- vs session optimal lap
+The color of the bar shows if you are currently gaining or losing time.
+Exit a corner slightly better and it will glow green.
+Exit a corner *significantly* faster and the bar will be bright green.
 
-Works in multiplayer and offline modes.
+The number displayed is the time overall loss/improvement for the
+current lap (or sector).  The length of the color bar is a visual
+representation of this time loss/improvement.
 
-The number itself is the improvement/loss for the current lap(or sector),
-the bar length is a visual representation of that number.
+!! Drive a complete lap before the bar will display data.
 
-The color of the bar is the fun bit:It shows if you are gaining or losing time.
-(exit a corner slightly better and it will glow green,
- even if the delta itself is still in the red; exit a corner
- significantly faster and it will be bright green)
+!! For sectors to work in multiplayer, drive the track in single player first.
 
-Best lap telemetry is stored locally in a JSON format.
-
-Does not connect to any remote services, it's entirely local.
-
-It doesn't affect my frame rate on my relatively-low-end CPU,
-but let me know if something is not working right or it is
-causing slowdowns.
-
-
+Click on the bar repeatedly to toggle display mode.
+(vs best lap, vs best sectors, vs overall optimal lap; all-time or this-session)
 
 INSTALLATION
 
