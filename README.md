@@ -4,7 +4,19 @@
 
 Released at http://www.racedepartment.com/downloads/deltabar.4842/
 
-> Click repeatedly on plugin to toggle mode:
+DeltaBar shows time and speed difference compared to your best lap (or best sector).
+
+The color of the bar shows if you are currently gaining or losing time.  Exit a corner slightly better and it will glow green.  Exit a corner *significantly* faster and the bar will be bright green.
+
+The number displayed is the time overall loss/improvement for the current lap (or sector).  The length of the color bar is a visual representation of this time loss/improvement.
+
+## OPERATION
+
+:exclamation: Drive a complete lap before the bar will display data.
+
+:exclamation: For sectors to work in multiplayer, drive the track in single player/offline mode first.
+
+> Click repeatedly on plugin to toggle the display:
 >
 > - vs all-time best lap
 > - vs all-time best sectors
@@ -13,18 +25,11 @@ Released at http://www.racedepartment.com/downloads/deltabar.4842/
 > - vs session best sectors
 > - vs session optimal lap
 
-Works in multiplayer and offline modes.
-
-The number itself is the improvement/loss for the current lap(or sector), the bar length is a visual representation of that number.
-
-The color of the bar is the fun bit: It shows if you are gaining or losing time.
-(exit a corner slightly better and it will glow green, even if the delta itself is still in the red; exit a corner significantly faster and it will be bright green)
+ - Does not connect to any remote services, it's entirely local.
 
  - Best lap telemetry is stored locally in a JSON format.
 
- - Does not connect to any remote services, it's entirely local.
-
- - It doesn't affect my frame rate on my relatively-low-end CPU, but let me know if something is not working right or it is causing slowdowns.
+ - Should not have a measurable effect on frame rate.
 
 ## SCREENSHOTS
 
